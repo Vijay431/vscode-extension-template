@@ -415,7 +415,7 @@ jobs:
           working-directory: site
 
       - name: Configure GitHub Pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
 
       - name: Build Jekyll Site
         run: bundle exec jekyll build
