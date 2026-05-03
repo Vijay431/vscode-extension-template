@@ -1,0 +1,211 @@
+{
+  "name": "{{EXTENSION_NAME}}",
+  "displayName": "{{DISPLAY_NAME}}",
+  "description": "{{DESCRIPTION}}",
+  "version": "0.0.1",
+  "license": "MIT",
+  "publisher": "{{PUBLISHER}}",
+  "icon": "logo.png",
+  "author": {
+    "name": "{{AUTHOR_NAME}}",
+    "email": "{{AUTHOR_EMAIL}}"
+  },
+  "repository": {
+    "type": "git",
+    "url": "{{REPO_URL}}.git"
+  },
+  "bugs": {
+    "url": "{{REPO_URL}}/issues"
+  },
+  "homepage": "{{REPO_URL}}#readme",
+  "keywords": ["vscode-extension"],
+  "categories": ["Other"],
+  "engines": {
+    "node": ">=20",
+    "vscode": ">=1.110.0"
+  },
+  "activationEvents": ["onStartupFinished"],
+  "contributes": {
+    "commands": [
+      {
+        "command": "{{EXTENSION_ID}}.helloWorld",
+        "title": "Hello World",
+        "category": "{{DISPLAY_NAME}}"
+      },
+      {
+        "command": "{{EXTENSION_ID}}.enable",
+        "title": "Enable",
+        "category": "{{DISPLAY_NAME}}"
+      },
+      {
+        "command": "{{EXTENSION_ID}}.disable",
+        "title": "Disable",
+        "category": "{{DISPLAY_NAME}}"
+      },
+      {
+        "command": "{{EXTENSION_ID}}.showOutputChannel",
+        "title": "Show Output Channel",
+        "category": "{{DISPLAY_NAME}}"
+      },
+      {
+        "command": "{{EXTENSION_ID}}.openWalkthrough",
+        "title": "Open Walkthrough",
+        "category": "{{DISPLAY_NAME}}"
+      }
+    ],
+    "walkthroughs": [
+      {
+        "id": "{{EXTENSION_ID}}.gettingStarted",
+        "title": "Get Started with {{DISPLAY_NAME}}",
+        "description": "Discover what {{DISPLAY_NAME}} can do.",
+        "steps": [
+          {
+            "id": "{{EXTENSION_ID}}.step.helloWorld",
+            "title": "Say Hello",
+            "description": "Open the Command Palette and run **Hello World** to see it in action.\n\n[Run Hello World](command:{{EXTENSION_ID}}.helloWorld)",
+            "media": {
+              "image": "docs/images/screenshots/hello-world.png",
+              "altText": "Hello World command demonstration"
+            },
+            "completionEvents": ["onCommand:{{EXTENSION_ID}}.helloWorld"]
+          }
+        ]
+      }
+    ],
+    "configuration": {
+      "title": "{{DISPLAY_NAME}}",
+      "properties": {
+        "{{EXTENSION_ID}}.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable or disable {{DISPLAY_NAME}}"
+        },
+        "{{EXTENSION_ID}}.accessibility.verbosity": {
+          "type": "string",
+          "enum": ["minimal", "normal", "verbose"],
+          "default": "normal",
+          "description": "Verbosity of accessibility announcements for screen readers"
+        },
+        "{{EXTENSION_ID}}.accessibility.screenReaderMode": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable enhanced screen reader support"
+        },
+        "{{EXTENSION_ID}}.accessibility.keyboardNavigation": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show keyboard navigation hints in Quick Pick dialogs"
+        }
+      }
+    },
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "{{EXTENSION_ID}}.helloWorld",
+          "when": "{{EXTENSION_ID}}.enabled"
+        }
+      ]
+    }
+  },
+  "galleryBanner": {
+    "color": "#1e1e2e",
+    "theme": "dark"
+  },
+  "vsce": {
+    "dependencies": false,
+    "yarn": false
+  },
+  "ovsx": {
+    "namespace": "{{PUBLISHER}}",
+    "dependencies": false,
+    "yarn": false
+  },
+  "main": "./dist/extension.js",
+  "scripts": {
+    "init": "node init.mjs",
+    "vscode:prepublish": "tsx esbuild.config.ts --production",
+    "build": "tsx esbuild.config.ts",
+    "watch": "tsx esbuild.config.ts --watch",
+    "clean": "rimraf dist *.vsix",
+    "rebuild": "pnpm run clean && pnpm run build && vsce package",
+    "test:unit": "vitest run",
+    "test:integration": "npx tsc -p tsconfig.test.json && xvfb-run -a node ./out-test/test/runTests.js",
+    "package": "vsce package",
+    "package:openvsx": "ovsx package",
+    "publish": "vsce publish",
+    "publish:openvsx": "ovsx publish",
+    "lint": "eslint src",
+    "lint:fix": "eslint src --fix",
+    "lint-staged": "lint-staged",
+    "format": "prettier --write .",
+    "site:serve": "cd site && bundle exec jekyll serve --baseurl ''",
+    "site:live": "cd site && bundle exec jekyll serve --baseurl '' --livereload",
+    "system:verify": "concurrently \"husky\" \"cd site && bundle config set --local path vendor/bundle && bundle install\""
+  },
+  "prettier": {
+    "printWidth": 100,
+    "tabWidth": 2,
+    "useTabs": false,
+    "semi": true,
+    "singleQuote": true,
+    "quoteProps": "as-needed",
+    "trailingComma": "all",
+    "bracketSpacing": true,
+    "bracketSameLine": false,
+    "arrowParens": "always",
+    "endOfLine": "lf",
+    "proseWrap": "preserve",
+    "htmlWhitespaceSensitivity": "css",
+    "embeddedLanguageFormatting": "auto"
+  },
+  "lint-staged": {
+    "src/**/*.{ts,tsx}": ["eslint --no-cache --fix --quiet", "prettier --write"],
+    "scripts/**/*.{ts,tsx}": ["eslint --no-cache --fix --quiet", "prettier --write"],
+    "*.{json,yaml,yml}": ["prettier --write"],
+    "*.md": ["prettier --write"],
+    "*.{html,css}": ["prettier --write"],
+    "package.json": ["prettier --write"],
+    "tsconfig.json": ["prettier --write"]
+  },
+  "commitlint": {
+    "extends": ["@commitlint/config-conventional"]
+  },
+  "pnpm": {
+    "overrides": {
+      "serialize-javascript": "7.0.5"
+    }
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.8.0",
+    "@commitlint/config-conventional": "^19.8.0",
+    "@eslint/js": "^9.39.4",
+    "@types/mocha": "10.0.10",
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.110.0",
+    "@typescript-eslint/eslint-plugin": "^8.58.0",
+    "@typescript-eslint/parser": "^8.58.0",
+    "@vitest/coverage-v8": "3.1.1",
+    "@vscode/test-electron": "2.5.2",
+    "@vscode/vsce": "^3.7.1",
+    "concurrently": "^9.1.2",
+    "esbuild": "^0.28.0",
+    "eslint": "^9.39.4",
+    "eslint-config-prettier": "^9.1.2",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-n": "^17.0.0",
+    "eslint-plugin-prettier": "^5.5.5",
+    "eslint-plugin-promise": "^7.2.1",
+    "eslint-plugin-security": "^3.0.1",
+    "glob": "^13.0.6",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
+    "mocha": "11.1.0",
+    "ovsx": "^0.10.10",
+    "prettier": "^3.8.1",
+    "rimraf": "^6.0.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.58.0",
+    "vitest": "3.1.1"
+  }
+}
