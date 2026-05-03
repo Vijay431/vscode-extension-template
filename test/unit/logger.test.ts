@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-import { Logger, LogLevel, LogFormat, LogCategory } from '../../src/utils/logger';
+import { Logger, LogLevel, LogFormat } from '../../src/utils/logger';
 
 function makeChannel() {
   return {
@@ -111,7 +111,7 @@ describe('Logger', () => {
       expect(parsed.data).toEqual({ code: 42 });
     });
 
-    it('should include category field in JSON output', () => {
+    it('should include timestamp and level in JSON output', () => {
       const channel = makeChannel();
       const logger = Logger.create(channel as any);
       logger.setLogFormat(LogFormat.JSON);
@@ -120,7 +120,9 @@ describe('Logger', () => {
 
       const raw = channel.appendLine.mock.calls[0][0] as string;
       const parsed = JSON.parse(raw);
-      expect(parsed.category).toBe(LogCategory.GENERAL);
+      expect(typeof parsed.timestamp).toBe('string');
+      expect(parsed.level).toBe('INFO');
+      expect(parsed.message).toBe('op');
     });
   });
 
