@@ -247,7 +247,7 @@ jobs:
     needs: [release-build]
     steps:
       - name: Download VSIX Artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: vsix-package
 
@@ -340,7 +340,7 @@ jobs:
     needs: [setup, verifier]
     steps:
       - name: Download VSIX Artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: vsix-package
 
@@ -370,7 +370,7 @@ jobs:
     needs: [setup, verifier]
     steps:
       - name: Download VSIX Artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: vsix-package
 
