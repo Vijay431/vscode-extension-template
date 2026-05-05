@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code when working with this VS Code extension. It is the single source of truth for architecture, conventions, and development workflow. Update it whenever structure or conventions change.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository. It is the single source of truth for architecture, conventions, and development workflow. Update it whenever structure or conventions change.
 
 ---
 
@@ -19,6 +19,7 @@ This file provides guidance to Claude Code when working with this VS Code extens
 ## Development Commands
 
 ```bash
+pnpm run init             # first-time bootstrap: replace {{TOKEN}} placeholders, then self-deletes
 pnpm install              # install dependencies
 pnpm run build            # build extension (~1s)
 pnpm run watch            # watch mode
@@ -35,6 +36,9 @@ pnpm run publish:openvsx  # publish to Open VSX Registry
 pnpm run site:serve       # serve Jekyll GitHub Pages site locally
 ```
 
+Run a single unit test file: `pnpm run test:unit -- test/unit/MyCommand.test.ts`
+Run tests matching a pattern: `pnpm run test:unit -- -t "should execute"`
+
 Press **F5** in VS Code to launch the Extension Development Host.
 
 ---
@@ -48,7 +52,6 @@ src/
     ExtensionManager.ts         # lifecycle coordinator
     CommandsManager.ts          # command registration — add new commands here
     CommandRegistry.ts          # generic command registry
-    WalkthroughManager.ts       # first-run walkthrough
   commands/
     BaseCommandHandler.ts       # abstract base — extend this for every command
     ICommandHandler.ts
@@ -62,6 +65,7 @@ src/
     interfaces/                 # ILogger, IConfigurationService, IAccessibilityService
   types/
     config.ts                   # ExtensionConfiguration type
+    extension.ts                # extension-level shared types
   utils/
     logger.ts                   # output-channel logger
     cache.ts                    # LRU + TTL generic cache
@@ -76,7 +80,6 @@ test/
   fixtures/                     # test fixture files
   runTests.ts                   # @vscode/test-electron launcher
 site/                           # Jekyll GitHub Pages site
-docs/                           # VS Code walkthrough markdown files
 ```
 
 ---
@@ -84,7 +87,7 @@ docs/                           # VS Code walkthrough markdown files
 ## How to Add a Command
 
 1. **Copy** `src/commands/HelloWorldCommand.ts` → `src/commands/MyFeatureCommand.ts`
-2. **Rename** the class and implement `execute()` using the `BaseCommandHandler` helpers.
+2. **Rename** the class. The constructor signature is `(logger: ILogger, a11y: IAccessibilityService)` — pass `'MyFeatureCommand'` as the `name` to `super()`. Implement `execute()` returning `CommandResult` via `this.success()` or `this.error()`.
 3. **Register** it in `src/managers/CommandsManager.ts`:
    ```typescript
    this.registry.registerCommand({
@@ -99,7 +102,6 @@ docs/                           # VS Code walkthrough markdown files
    - Unit: `test/unit/MyFeatureCommand.test.ts`
    - Integration: `test/suite/myFeature.test.ts`
 6. **Document** it:
-   - Walkthrough step: `docs/my-feature.md` + `package.json` `contributes.walkthroughs.steps`
    - Site page: `site/services/myFeature.md`
    - Update `CHANGELOG.md` under `[Unreleased]`
 

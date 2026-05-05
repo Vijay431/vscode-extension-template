@@ -46,30 +46,6 @@
         "command": "{{EXTENSION_ID}}.showOutputChannel",
         "title": "Show Output Channel",
         "category": "{{DISPLAY_NAME}}"
-      },
-      {
-        "command": "{{EXTENSION_ID}}.openWalkthrough",
-        "title": "Open Walkthrough",
-        "category": "{{DISPLAY_NAME}}"
-      }
-    ],
-    "walkthroughs": [
-      {
-        "id": "{{EXTENSION_ID}}.gettingStarted",
-        "title": "Get Started with {{DISPLAY_NAME}}",
-        "description": "Discover what {{DISPLAY_NAME}} can do.",
-        "steps": [
-          {
-            "id": "{{EXTENSION_ID}}.step.helloWorld",
-            "title": "Say Hello",
-            "description": "Open the Command Palette and run **Hello World** to see it in action.\n\n[Run Hello World](command:{{EXTENSION_ID}}.helloWorld)",
-            "media": {
-              "image": "docs/images/screenshots/hello-world.png",
-              "altText": "Hello World command demonstration"
-            },
-            "completionEvents": ["onCommand:{{EXTENSION_ID}}.helloWorld"]
-          }
-        ]
       }
     ],
     "configuration": {

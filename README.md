@@ -14,7 +14,7 @@ A production-ready, opinionated template for building VS Code extensions. Mirror
 | **Tests** | Vitest unit tests (no live VS Code); Mocha integration tests (live Extension Host via `@vscode/test-electron`) |
 | **CI/CD** | GitHub Actions: lint → unit tests → integration tests → cross-platform build → release → dual publish → GitHub Pages |
 | **Docs site** | Jekyll on GitHub Pages; assets/layouts/pages included |
-| **Starter command** | Hello World wired end-to-end (DI → manager → command → test → walkthrough) |
+| **Starter command** | Hello World wired end-to-end (DI → manager → command → test) |
 
 ## Bootstrap a new extension
 

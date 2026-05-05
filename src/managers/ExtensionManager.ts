@@ -5,20 +5,17 @@ import { ConfigValidator } from '../utils/configValidator';
 import { Logger } from '../utils/logger';
 
 import { CommandsManager } from './CommandsManager';
-import { WalkthroughManager } from './WalkthroughManager';
 
 export class ExtensionManager {
   private logger: Logger;
   private configService: ConfigurationService;
   private commandsManager: CommandsManager;
-  private walkthroughManager: WalkthroughManager;
   private disposables: vscode.Disposable[] = [];
 
   constructor() {
     this.logger = Logger.getInstance();
     this.configService = ConfigurationService.getInstance();
     this.commandsManager = new CommandsManager();
-    this.walkthroughManager = new WalkthroughManager();
   }
 
   public async activate(context: vscode.ExtensionContext): Promise<void> {
@@ -36,14 +33,6 @@ export class ExtensionManager {
       ConfigValidator.validate(rawConfig, this.logger);
 
       await this.initializeComponents(context);
-
-      await this.walkthroughManager.initialize(context);
-
-      context.subscriptions.push(
-        vscode.commands.registerCommand('{{EXTENSION_ID}}.openWalkthrough', () => {
-          void this.walkthroughManager.openWalkthrough();
-        }),
-      );
 
       context.subscriptions.push(
         vscode.commands.registerCommand('{{EXTENSION_ID}}.showOutputChannel', () => {
@@ -87,11 +76,7 @@ export class ExtensionManager {
 
   private async updateEnabledContext(): Promise<void> {
     const isEnabled = this.configService.isEnabled();
-    await vscode.commands.executeCommand(
-      'setContext',
-      '{{EXTENSION_ID}}.enabled',
-      isEnabled,
-    );
+    await vscode.commands.executeCommand('setContext', '{{EXTENSION_ID}}.enabled', isEnabled);
   }
 
   public deactivate(): void {
@@ -102,7 +87,11 @@ export class ExtensionManager {
   private dispose(): void {
     this.commandsManager.dispose();
     for (const d of this.disposables) {
-      try { d.dispose(); } catch (error) { this.logger.warn('Error disposing resource', error); }
+      try {
+        d.dispose();
+      } catch (error) {
+        this.logger.warn('Error disposing resource', error);
+      }
     }
     this.disposables = [];
     this.logger.dispose();
