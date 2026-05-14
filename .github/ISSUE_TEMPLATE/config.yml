@@ -1,11 +1,11 @@
 blank_issues_enabled: true
 contact_links:
   - name: GitHub Discussions
-    url: https://github.com/Vijay431/{{EXTENSION_NAME}}/discussions
+    url: {{REPO_URL}}/discussions
     about: Ask questions and discuss ideas with the community
   - name: Documentation
-    url: https://vijay431.github.io/{{EXTENSION_NAME}}/
+    url: {{SITE_URL}}/
     about: Read the official documentation
   - name: Troubleshooting Guide
-    url: https://vijay431.github.io/{{EXTENSION_NAME}}/troubleshooting.html
+    url: {{SITE_URL}}/troubleshooting.html
     about: Common issues and solutions

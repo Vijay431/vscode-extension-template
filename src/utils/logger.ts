@@ -28,8 +28,7 @@ export class Logger implements ILogger {
   private logFormat: LogFormat = LogFormat.TEXT;
 
   private constructor(outputChannel?: vscode.OutputChannel) {
-    this.outputChannel =
-      outputChannel ?? vscode.window.createOutputChannel('{{DISPLAY_NAME}}');
+    this.outputChannel = outputChannel ?? vscode.window.createOutputChannel('{{DISPLAY_NAME}}');
   }
 
   public static getInstance(): Logger {
@@ -96,10 +95,18 @@ export class Logger implements ILogger {
     if (process.env['NODE_ENV'] === 'development') {
       const consoleMessage = `[${timestamp}] [${levelName}] ${message}`;
       switch (level) {
-        case LogLevel.DEBUG: console.debug(consoleMessage, data); break;
-        case LogLevel.INFO:  console.info(consoleMessage, data);  break;
-        case LogLevel.WARN:  console.warn(consoleMessage, data);  break;
-        case LogLevel.ERROR: console.error(consoleMessage, data); break;
+        case LogLevel.DEBUG:
+          console.debug(consoleMessage, data);
+          break;
+        case LogLevel.INFO:
+          console.info(consoleMessage, data);
+          break;
+        case LogLevel.WARN:
+          console.warn(consoleMessage, data);
+          break;
+        case LogLevel.ERROR:
+          console.error(consoleMessage, data);
+          break;
       }
     }
   }

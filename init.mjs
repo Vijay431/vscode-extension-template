@@ -7,6 +7,9 @@
  * then self-deletes so the repo looks clean.
  *
  * Usage:  node init.mjs   (or: pnpm run init)
+ * Flags:
+ *   --dry-run    Preview replacements without writing any files.
+ *   --reset-git  Wipe .git history and create a fresh initial commit after init.
  * Requires: Node.js >= 20
  */
 
@@ -20,13 +23,18 @@ import {
   renameSync,
   unlinkSync,
   existsSync,
+  rmSync,
 } from 'node:fs';
 import { join, extname, basename, dirname } from 'node:path';
-import { execSync } from 'node:child_process';
+import { execSync, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
 const ROOT = dirname(__filename);
+
+const args = process.argv.slice(2);
+const isDryRun = args.includes('--dry-run');
+const isResetGit = args.includes('--reset-git');
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -76,13 +84,13 @@ function* walkFiles(dir) {
   }
 }
 
-function replaceInFile(filePath, tokens) {
-  if (!isTextFile(filePath)) return;
+function replaceInFile(filePath, tokens, dryRun = false) {
+  if (!isTextFile(filePath)) return false;
   let content;
   try {
     content = readFileSync(filePath, 'utf8');
   } catch {
-    return; // skip unreadable files
+    return false; // skip unreadable files
   }
 
   let changed = false;
@@ -94,10 +102,11 @@ function replaceInFile(filePath, tokens) {
     }
   }
 
-  if (changed) writeFileSync(filePath, content, 'utf8');
+  if (changed && !dryRun) writeFileSync(filePath, content, 'utf8');
+  return changed;
 }
 
-function renamePathSegments(dir, tokens) {
+function renamePathSegments(dir, tokens, dryRun = false) {
   // Walk bottom-up so we rename children before parents
   const entries = [];
   function collect(d) {
@@ -121,7 +130,8 @@ function renamePathSegments(dir, tokens) {
       );
     }
     if (newPath !== oldPath && existsSync(oldPath)) {
-      renameSync(oldPath, newPath);
+      if (!dryRun) renameSync(oldPath, newPath);
+      else console.log(`  rename: ${oldPath.replace(ROOT, '.')} → ${newPath.replace(ROOT, '.')}`);
     }
   }
 }
@@ -129,6 +139,12 @@ function renamePathSegments(dir, tokens) {
 function run(cmd) {
   console.log(`\n> ${cmd}`);
   execSync(cmd, { stdio: 'inherit', cwd: ROOT });
+}
+
+/** Read a git config value; returns '' if git is not installed or key is unset. */
+function gitConfigGet(key) {
+  const result = spawnSync('git', ['config', key], { encoding: 'utf8', cwd: ROOT });
+  return result.stdout?.trim() ?? '';
 }
 
 // ── Prompt ────────────────────────────────────────────────────────────────────
@@ -142,9 +158,16 @@ async function ask(question, defaultVal) {
 }
 
 async function main() {
-  console.log('\n╔══════════════════════════════════════════════════╗');
-  console.log('║  VS Code Extension Template — Project Setup      ║');
-  console.log('╚══════════════════════════════════════════════════╝\n');
+  if (isDryRun) {
+    console.log('\n╔══════════════════════════════════════════════════╗');
+    console.log('║  VS Code Extension Template — DRY RUN            ║');
+    console.log('║  No files will be written.                       ║');
+    console.log('╚══════════════════════════════════════════════════╝\n');
+  } else {
+    console.log('\n╔══════════════════════════════════════════════════╗');
+    console.log('║  VS Code Extension Template — Project Setup      ║');
+    console.log('╚══════════════════════════════════════════════════╝\n');
+  }
   console.log('Answer the prompts below. Press Enter to accept the default.\n');
 
   const dirName = basename(ROOT);
@@ -152,15 +175,25 @@ async function main() {
   const defaultDisplayName = pascal(defaultName.replace(/-/g, ' '));
   const defaultId = camel(defaultName);
 
+  // Auto-read git config for author defaults
+  const gitUserName = gitConfigGet('user.name');
+  const gitUserEmail = gitConfigGet('user.email');
+
   const extensionName = await ask('Extension npm name (kebab-case)', defaultName);
   const displayName   = await ask('Display name (shown in VS Code UI)', defaultDisplayName);
   const extensionId   = await ask('Extension ID (camelCase, used in command IDs)', camel(extensionName));
   const publisher     = await ask('Publisher ID (VS Code Marketplace publisher)');
   const description   = await ask('Short description');
-  const authorName    = await ask('Author name');
-  const authorEmail   = await ask('Author email');
+  const authorName    = await ask('Author name', gitUserName);
+  const authorEmail   = await ask('Author email', gitUserEmail);
   const repoUrl       = await ask('GitHub repository URL (without .git)', `https://github.com/${publisher}/${extensionName}`);
-  const siteUrl       = await ask('GitHub Pages URL', `https://${publisher}.github.io/${extensionName}`);
+
+  // Derive GitHub username from repo URL if possible, otherwise prompt
+  const urlMatch = repoUrl.match(/github\.com\/([^/]+)/);
+  const defaultGithubUser = urlMatch?.[1] ?? publisher;
+  const githubUsername    = await ask('GitHub username', defaultGithubUser);
+
+  const siteUrl       = await ask('GitHub Pages URL', `https://${githubUsername}.github.io/${extensionName}`);
   const year          = await ask('Copyright year', String(new Date().getFullYear()));
 
   rl.close();
@@ -180,35 +213,54 @@ async function main() {
   }
 
   const tokens = {
-    '{{EXTENSION_NAME}}': extensionName,
-    '{{DISPLAY_NAME}}':   displayName,
-    '{{EXTENSION_ID}}':   extensionId,
-    '{{PUBLISHER}}':      publisher,
-    '{{DESCRIPTION}}':    description,
-    '{{AUTHOR_NAME}}':    authorName,
-    '{{AUTHOR_EMAIL}}':   authorEmail,
-    '{{REPO_URL}}':       repoUrl,
-    '{{SITE_URL}}':       siteUrl,
-    '{{YEAR}}':           year,
+    '{{EXTENSION_NAME}}':  extensionName,
+    '{{DISPLAY_NAME}}':    displayName,
+    '{{EXTENSION_ID}}':    extensionId,
+    '{{PUBLISHER}}':       publisher,
+    '{{DESCRIPTION}}':     description,
+    '{{AUTHOR_NAME}}':     authorName,
+    '{{AUTHOR_EMAIL}}':    authorEmail,
+    '{{REPO_URL}}':        repoUrl,
+    '{{GITHUB_USERNAME}}': githubUsername,
+    '{{SITE_URL}}':        siteUrl,
+    '{{YEAR}}':            year,
   };
 
   console.log('\n📝 Tokens resolved:');
   for (const [k, v] of Object.entries(tokens)) {
-    console.log(`   ${k.padEnd(20)} → ${v}`);
+    console.log(`   ${k.padEnd(22)} → ${v}`);
   }
   console.log('');
+
+  if (isDryRun) {
+    // ── Dry-run: count changed files without writing ─────────────────────────
+    console.log('🔍 Scanning files (dry run — nothing will be written)...\n');
+    let changedCount = 0;
+    for (const filePath of walkFiles(ROOT)) {
+      if (filePath === __filename) continue;
+      const changed = replaceInFile(filePath, tokens, true);
+      if (changed) {
+        console.log(`  would change: ${filePath.replace(ROOT, '.')}`);
+        changedCount++;
+      }
+    }
+    renamePathSegments(ROOT, tokens, true);
+    console.log(`\n✅ Dry run complete. ${changedCount} file(s) would be modified.`);
+    console.log('   Run without --dry-run to apply changes.\n');
+    return;
+  }
 
   // ── Replace tokens in all text files ────────────────────────────────────
   console.log('🔄 Replacing placeholders...');
   for (const filePath of walkFiles(ROOT)) {
     // Skip this script itself during replacement; it'll be deleted at the end
     if (filePath === __filename) continue;
-    replaceInFile(filePath, tokens);
+    replaceInFile(filePath, tokens, false);
   }
 
   // ── Rename any path segments containing tokens ───────────────────────────
   // (Unlikely in the template, but keeps it future-proof)
-  renamePathSegments(ROOT, tokens);
+  renamePathSegments(ROOT, tokens, false);
 
   // ── Verify no stray placeholders remain ─────────────────────────────────
   console.log('🔍 Verifying no placeholders remain...');
@@ -250,19 +302,31 @@ async function main() {
   delete pkg.scripts['init'];
   writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n', 'utf8');
 
+  // ── Reset git history (opt-in) ───────────────────────────────────────────
+  if (isResetGit) {
+    console.log('\n🔄 Resetting git history...');
+    rmSync(join(ROOT, '.git'), { recursive: true, force: true });
+    run('git init');
+    run('git add -A');
+    run(`git commit -m "chore: initialize from vscode-extension-template"`);
+    console.log('✅ Fresh git history created.\n');
+  }
+
   // ── Self-delete ──────────────────────────────────────────────────────────
   console.log('🗑  Deleting init.mjs...');
   unlinkSync(__filename);
 
   // ── Done ─────────────────────────────────────────────────────────────────
-  console.log(`
-╔══════════════════════════════════════════════════╗
-║  🎉 ${displayName.padEnd(45)}║
-║  is ready!                                       ║
-╚══════════════════════════════════════════════════╝
-
-Next steps:
-  1. Press F5 in VS Code to launch the Extension Development Host.
+  const gitSteps = isResetGit
+    ? `  1. Press F5 in VS Code to launch the Extension Development Host.
+  2. Run "Hello World" from the Command Palette — you should see the info message.
+  3. Copy src/commands/HelloWorldCommand.ts → your first real command.
+  4. Register it in src/managers/CommandsManager.ts.
+  5. Add it to package.json contributes.commands.
+  6. Push your repo:
+       git remote add origin ${repoUrl}.git
+       git push -u origin main`
+    : `  1. Press F5 in VS Code to launch the Extension Development Host.
   2. Run "Hello World" from the Command Palette — you should see the info message.
   3. Copy src/commands/HelloWorldCommand.ts → your first real command.
   4. Register it in src/managers/CommandsManager.ts.
@@ -270,7 +334,16 @@ Next steps:
   6. Create your GitHub repo and push:
        git add -A && git commit -m "chore: initialize from vscode-extension-template"
        git remote add origin ${repoUrl}.git
-       git push -u origin main
+       git push -u origin main`;
+
+  console.log(`
+╔══════════════════════════════════════════════════╗
+║  🎉 ${displayName.padEnd(45)}║
+║  is ready!                                       ║
+╚══════════════════════════════════════════════════╝
+
+Next steps:
+${gitSteps}
 
 Happy building! 🚀
 `);

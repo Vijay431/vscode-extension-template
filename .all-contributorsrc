@@ -1,0 +1,12 @@
+{
+  "projectName": "{{EXTENSION_NAME}}",
+  "projectOwner": "{{GITHUB_USERNAME}}",
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "files": ["README.md"],
+  "imageSize": 100,
+  "commit": false,
+  "commitType": "docs",
+  "contributorsPerLine": 7,
+  "contributors": []
+}

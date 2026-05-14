@@ -8,14 +8,13 @@ assignees: ''
 
 ## Bug Description
 
-Brief description of the issue with context menus or code operations.
+Brief description of the issue.
 
 ## Reproduction Steps
 
-1. Open Node.js project
-2. Right-click in .ts/.tsx/.js/.jsx file
-3. Try to use '...' context menu option
-4. See error/unexpected behavior
+1. Open VS Code with {{DISPLAY_NAME}} installed
+2. Trigger the affected command or feature
+3. See error/unexpected behavior
 
 ## Expected vs Actual
 
@@ -25,26 +24,18 @@ Brief description of the issue with context menus or code operations.
 ## Environment
 
 - **OS:** Windows/macOS/Linux (specify version)
-- **VS Code:** Version (e.g., 1.102.0)
-- **Extension:** Version (e.g., 2.0.0)
+- **VS Code:** Version (e.g., 1.110.0)
+- **Extension:** Version (e.g., 0.0.1)
 - **Node.js:** Version (if relevant)
-- **Project:** React/Angular/Express/Next.js/Other
-- **File Type:** .ts/.tsx/.js/.jsx
 
 ## Issue Type (check one)
 
-- [ ] Context menus don't appear
-- [ ] Commands don't work/fail
-- [ ] Function detection issues
-- [ ] Copy/Move operations fail
-- [ ] Copy Function to File issues
-- [ ] Move Function to File issues
-- [ ] Save All problems
-- [ ] Terminal integration issues
-- [ ] Import handling problems
+- [ ] Command doesn't appear in Command Palette
+- [ ] Command fails to execute
+- [ ] Extension fails to activate
+- [ ] Configuration settings not applied
 - [ ] Keyboard shortcuts not working
-- [ ] Project detection issues
-- [ ] Other: **\*\***\_\_\_\_**\*\***
+- [ ] Other: ______
 
 ## Error Messages
 
@@ -58,35 +49,13 @@ Brief description of the issue with context menus or code operations.
 [Paste output from "{{DISPLAY_NAME}}" output channel]
 ```
 
-## Code Example
-
-**File that has the bug:**
-
-```typescript
-[Provide relevant code snippet]
-```
-
-## Terminal Issues (if applicable)
-
-- **Terminal Type:** integrated/external/system-default
-- **Terminal Command:** [if using external terminal]
-- **Directory Behavior:** parent-directory/workspace-root/current-directory
-- **Error Messages:** [paste error messages]
-
 ## Debug Information
 
 **Extension State:**
 
 - [ ] Extension is enabled
 - [ ] Extension is disabled
-- [ ] Extension crashes
-
-**Context Variables:**
-Run "{{DISPLAY_NAME}}: Debug Context Variables" and paste output:
-
-```
-[Paste debug output]
-```
+- [ ] Extension crashes on activation
 
 ## Frequency
 
@@ -100,7 +69,7 @@ Run "{{DISPLAY_NAME}}: Debug Context Variables" and paste output:
 
 **Has this worked before?**
 
-- [ ] Yes, worked in extension version **\*\***\_\_\_\_**\*\***
+- [ ] Yes, worked in extension version ______
 - [ ] No, never worked
 
 ## Additional Context

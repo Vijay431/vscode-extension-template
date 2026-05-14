@@ -26,6 +26,8 @@ export interface AccessibilityConfig {
  * Manages accessibility settings and provides screen reader announcements.
  * Implements IAccessibilityService for DI compatibility.
  *
+ * @author {{AUTHOR_NAME}} <{{AUTHOR_EMAIL}}>
+ *
  * @description
  * This service handles all accessibility-related functionality including:
  * - Reading and caching accessibility configuration
@@ -57,7 +59,6 @@ export interface AccessibilityConfig {
  * @category Accessibility
  * @subcategory Services
  *
- * @author Vijay Gangatharan <vijayanand431@gmail.com>
  * @since 2.1.0
  */
 export class AccessibilityService implements IAccessibilityService {

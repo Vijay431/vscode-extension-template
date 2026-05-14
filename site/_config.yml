@@ -3,10 +3,19 @@ description: "{{DESCRIPTION}}"
 baseurl: "/{{EXTENSION_NAME}}"
 url: "{{SITE_URL}}"
 
-repository: "{{PUBLISHER}}/{{EXTENSION_NAME}}"
+repository: "{{GITHUB_USERNAME}}/{{EXTENSION_NAME}}"
+github_username: "{{GITHUB_USERNAME}}"
 
+# Author
+author:
+  name: "{{AUTHOR_NAME}}"
+  email: "{{AUTHOR_EMAIL}}"
+  github: "{{GITHUB_USERNAME}}"
+
+# Build settings
 markdown: kramdown
 highlighter: rouge
+theme: minima
 
 kramdown:
   input: GFM
@@ -23,14 +32,53 @@ exclude:
   - vendor/
   - node_modules/
   - _site/
+  - README.md
+  - package.json
+  - tsconfig.json
+  - .gitignore
+  - .vscode/
+  - src/
+  - dist/
+  - out-test/
+
+# Site navigation (add/remove entries as needed)
+navigation:
+  - title: "Home"
+    url: "/"
+  - title: "Documentation"
+    url: "/documentation"
+  - title: "Developer Guide"
+    url: "/developer"
+
+# Extension details (update after running init)
+extension:
+  name: "{{DISPLAY_NAME}}"
+  marketplace_url: "https://marketplace.visualstudio.com/items?itemName={{PUBLISHER}}.{{EXTENSION_NAME}}"
+  openvsx_url: "https://open-vsx.org/extension/{{PUBLISHER}}/{{EXTENSION_NAME}}"
+  github_url: "{{REPO_URL}}"
+  publisher: "{{PUBLISHER}}"
 
 collections:
   services:
     output: true
     permalink: /services/:name/
 
+# Default layouts
 defaults:
   - scope:
       path: ""
     values:
       layout: default
+
+# Sass configuration
+sass:
+  sass_dir: assets/css
+  style: compressed
+
+# SEO and social (optional — fill in or remove)
+twitter:
+  username:
+  card: summary_large_image
+
+# Analytics (uncomment and add your tracking ID)
+# google_analytics: UA-XXXXXXXXX-X
