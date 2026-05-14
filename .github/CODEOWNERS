@@ -1,0 +1,3 @@
+# Default owner for everything in the repository.
+# Replace @{{GITHUB_USERNAME}} with your actual GitHub username after running init.
+* @{{GITHUB_USERNAME}}

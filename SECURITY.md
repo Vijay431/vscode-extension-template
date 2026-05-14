@@ -6,17 +6,14 @@ We provide security updates for the following versions of {{DISPLAY_NAME}}:
 
 | Version | Supported          | Node.js Compatibility |
 | ------- | ------------------ | --------------------- |
-| 2.0.x   | :white_check_mark: | Node.js 20, 22, 24    |
-| 1.2.x   | :x:                | —                     |
-| 1.1.x   | :x:                | —                     |
-| 1.0.x   | :x:                | —                     |
+| 0.0.x   | :white_check_mark: | Node.js 20, 22, 24    |
 
 ## Reporting a Vulnerability
 
 We take the security of {{DISPLAY_NAME}} VS Code Extension seriously. If you believe you have found a security vulnerability, please follow these steps:
 
 1. **DO NOT** disclose the vulnerability publicly.
-2. Send a detailed description of the vulnerability to vijayanand431@gmail.com.
+2. Send a detailed description of the vulnerability to {{AUTHOR_EMAIL}}.
 3. You should receive a response within 48 hours.
 4. Please provide sufficient information to reproduce the vulnerability.
 

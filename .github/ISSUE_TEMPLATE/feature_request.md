@@ -1,6 +1,6 @@
 ---
 name: Feature Request
-about: Suggest a context menu enhancement or code operation feature
+about: Suggest a new feature or enhancement for {{DISPLAY_NAME}}
 title: '[FEATURE] '
 labels: enhancement
 assignees: ''
@@ -32,25 +32,18 @@ How should this feature appear in the UI?
 
 ## Integration Location (check preferred)
 
-- [ ] New right-click context menu option
-- [ ] Enhancement to existing feature (Copy Function, Copy/Move, Save All, Terminal)
-- [ ] Enhancement to Copy Function to File / Move Function to File
-- [ ] Enhancement to Generators (Enum, Env, Cron, Naming)
-- [ ] Command Palette only
+- [ ] New command in Command Palette
+- [ ] Enhancement to existing command
 - [ ] Keyboard shortcut
 - [ ] Configuration setting
-- [ ] Other: **\*\***\_\_\_\_**\*\***
+- [ ] Other: ______
 
 ## Feature Type
 
 - [ ] New core feature
 - [ ] Enhancement to existing feature
-- [ ] Code operation improvement
-- [ ] Generator/utility addition
-- [ ] Terminal integration feature
-- [ ] Framework-specific feature
 - [ ] Configuration option
-- [ ] Other: **\*\***\_\_\_\_**\*\***
+- [ ] Other: ______
 
 ## Examples
 
@@ -74,16 +67,11 @@ How should this feature appear in the UI?
 **Affected Components:**
 Which services or managers would need changes?
 
-- [ ] Code Analysis Service
 - [ ] Configuration Service
-- [ ] File Discovery Service
-- [ ] File Save Service
-- [ ] Terminal Service
-- [ ] Project Detection Service
-- [ ] Generator Services
+- [ ] Accessibility Service
 - [ ] Extension Manager
-- [ ] Context Menu Manager
-- [ ] Other: **\*\***\_\_\_\_**\*\***
+- [ ] Commands Manager
+- [ ] Other: ______
 
 **Breaking Changes:**
 

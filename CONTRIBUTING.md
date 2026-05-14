@@ -93,9 +93,9 @@ The project has two test layers:
 | Unit        | `pnpm run test:unit`        | Vitest                          | Infrastructure utilities and services with mocked VS Code API      |
 | Integration | `pnpm run test:integration` | Mocha + `@vscode/test-electron` | All 11 user-facing features, end-to-end in a real VS Code instance |
 
-**Unit tests** cover: `Cache`, `pathValidator`, `ConfigValidator`, `accessibilityHelper`, `CodeAnalysisService`, `ProjectDetectionService`, `FileDiscoveryService`.
+**Unit tests** cover: `Cache`, `pathValidator`, `ConfigValidator`, `accessibilityHelper`, and services under `src/services/`.
 
-**Integration tests** cover: Copy Function, Copy/Move Function to File, Copy/Move Selection to File, Save All, Open in Terminal, Rename File to Convention, Generate Enum, Generate Cron, Generate .env.
+**Integration tests** cover: extension activation, command registration, and end-to-end command execution.
 
 On Linux, integration tests require a display. Use `xvfb-run -a pnpm run test:integration` in headless environments.
 
@@ -174,7 +174,7 @@ Breaking changes: append `!` after the type — `feat!: remove deprecated API`
 | Limit                        | Value   | Rationale                            |
 | ---------------------------- | ------- | ------------------------------------ |
 | Max files per commit         | **15**  | Keeps commits focused and reviewable |
-| Max lines changed per commit | **600** | Prevents large, hard-to-review diffs |
+| Max lines changed per commit | **3000** | Prevents large, hard-to-review diffs |
 
 If your change exceeds these limits, split it into multiple focused commits:
 
@@ -188,10 +188,6 @@ git commit -m "feat(terminal): add openInTerminal command handler"
 ```
 
 > **Note:** `--no-verify` bypasses local hooks but the CI `commit-size` job will still block oversized PRs.
-
-#### Grandfathered History
-
-Commits before `v2.0.0` predate this enforcement and are not subject to these rules. Enforcement applies to all commits from the next release onwards.
 
 ### Pull Request Process
 
@@ -234,14 +230,20 @@ The repository uses a single consolidated GitHub Actions workflow at `.github/wo
 src/
 ├── extension.ts              # Entry point
 ├── managers/
-│   ├── extensionManager.ts   # Lifecycle management
-│   └── contextMenuManager.ts # Context menu control
+│   ├── ExtensionManager.ts   # Lifecycle management
+│   ├── CommandsManager.ts    # Command registration
+│   └── CommandRegistry.ts    # Generic command registry
+├── commands/
+│   ├── BaseCommandHandler.ts # Abstract base for commands
+│   ├── ICommandHandler.ts    # Command handler interface
+│   └── HelloWorldCommand.ts  # Starter command
 ├── services/
-│   ├── projectDetectionService.ts # Project detection
 │   ├── configurationService.ts    # Settings integration
-│   ├── fileDiscoveryService.ts    # File operations
-│   ├── fileSaveService.ts         # Save operations
-│   └── codeAnalysisService.ts     # AST analysis
+│   └── accessibilityService.ts    # Screen reader / ARIA helpers
+├── di/
+│   ├── container.ts          # DI container (singleton pattern)
+│   ├── types.ts              # DI token symbols
+│   └── interfaces/           # ILogger, IConfigurationService, IAccessibilityService
 ├── utils/
 │   └── logger.ts             # Logging utilities
 └── types/
@@ -324,7 +326,7 @@ Update `CHANGELOG.md` for:
 
 - **GitHub Issues** - Report bugs or request features
 - **GitHub Discussions** - Ask questions and share ideas
-- **Email** - Contact maintainer at <vijayanand431@gmail.com>
+- **Email** - Contact maintainer at <{{AUTHOR_EMAIL}}>
 
 ### Recognition
 
@@ -363,9 +365,9 @@ Helpful extensions for development:
 
 If you have questions about contributing:
 
-1. Check existing [issues](https://github.com/Vijay431/{{EXTENSION_NAME}}/issues)
-2. Search [discussions](https://github.com/Vijay431/{{EXTENSION_NAME}}/discussions)
+1. Check existing [issues]({{REPO_URL}}/issues)
+2. Search [discussions]({{REPO_URL}}/discussions)
 3. Create a new issue with the "question" label
-4. Email the maintainer: <vijayanand431@gmail.com>
+4. Email the maintainer: <{{AUTHOR_EMAIL}}>
 
 Thank you for contributing to {{DISPLAY_NAME}}! 🚀

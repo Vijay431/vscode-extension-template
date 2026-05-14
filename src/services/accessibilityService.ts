@@ -57,7 +57,6 @@ export interface AccessibilityConfig {
  * @category Accessibility
  * @subcategory Services
  *
- * @author Vijay Gangatharan <vijayanand431@gmail.com>
  * @since 2.1.0
  */
 export class AccessibilityService implements IAccessibilityService {

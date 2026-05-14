@@ -4,6 +4,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ---
 
+## Template Setup
+
+This is a scaffold template. Every `{{TOKEN}}` placeholder (including in this file) is replaced by running:
+
+```bash
+pnpm run init   # interactive prompts → replaces all {{TOKEN}}s → self-deletes init.mjs
+```
+
+Tokens used: `{{EXTENSION_NAME}}`, `{{DISPLAY_NAME}}`, `{{EXTENSION_ID}}`, `{{PUBLISHER}}`, `{{DESCRIPTION}}`, `{{AUTHOR_NAME}}`, `{{AUTHOR_EMAIL}}`, `{{REPO_URL}}`, `{{SITE_URL}}`, `{{YEAR}}`, `{{GITHUB_USERNAME}}`.
+
+---
+
 ## Project Overview
 
 - **Name:** {{DISPLAY_NAME}}
@@ -30,10 +42,13 @@ pnpm run lint             # ESLint
 pnpm run lint:fix         # auto-fix lint issues
 pnpm run format           # format files with Prettier
 pnpm run test:unit        # run unit tests (Vitest)
+pnpm run test:unit:coverage # run unit tests with v8 coverage (outputs coverage/lcov.info)
 pnpm run test:integration # run integration tests (Mocha + VS Code, requires display)
 pnpm run publish          # publish to VS Code Marketplace
 pnpm run publish:openvsx  # publish to Open VSX Registry
 pnpm run site:serve       # serve Jekyll GitHub Pages site locally
+pnpm run site:live        # serve Jekyll site with live-reload
+pnpm run system:verify    # verify husky hooks + bundle install for Jekyll site
 ```
 
 Run a single unit test file: `pnpm run test:unit -- test/unit/MyCommand.test.ts`
@@ -79,8 +94,24 @@ test/
   suite/                        # Mocha integration tests (feature-level, live VS Code)
   fixtures/                     # test fixture files
   runTests.ts                   # @vscode/test-electron launcher
+out-test/                       # integration test compile output (tsconfig.test.json, gitignored)
 site/                           # Jekyll GitHub Pages site
 ```
+
+---
+
+## Built-in Commands
+
+The template ships with these commands already wired (no action needed):
+
+| Command ID | Purpose |
+|---|---|
+| `{{EXTENSION_ID}}.enable` | Sets `{{EXTENSION_ID}}.enabled` config to `true` |
+| `{{EXTENSION_ID}}.disable` | Sets `{{EXTENSION_ID}}.enabled` config to `false` |
+| `{{EXTENSION_ID}}.showOutputChannel` | Reveals the extension's output channel |
+| `{{EXTENSION_ID}}.helloWorld` | Starter command (copy and replace) |
+
+The `{{EXTENSION_ID}}.enabled` VS Code context key is set on activation. Use it in `package.json` `when` clauses to gate command palette visibility, as the template already does for `helloWorld`.
 
 ---
 
@@ -104,6 +135,14 @@ site/                           # Jekyll GitHub Pages site
 6. **Document** it:
    - Site page: `site/services/myFeature.md`
    - Update `CHANGELOG.md` under `[Unreleased]`
+
+---
+
+## Command Handler Lifecycle
+
+`CommandRegistry.registerCommand` calls the `handlerFactory` immediately at registration time and holds the resulting instance for the lifetime of the extension. The same handler instance is reused for every invocation of that command. Keep handlers stateless, or explicitly reset any state at the start of `execute()`.
+
+Never use `console.log` / `console.error` in handler or service code — esbuild strips all `console` calls from production builds. Use `this.logger` / `this.logInfo()` etc. instead.
 
 ---
 
@@ -148,18 +187,90 @@ Add new settings:
 
 ## Release & Versioning Strategy
 
-| Minor | Line | Publishes as |
-|-------|------|-------------|
-| Even  | Stable | Stable release |
-| Odd   | Pre-release | Pre-release |
+This project follows [SemVer 2.0.0](https://semver.org/spec/v2.0.0.html). Pre-release vs stable is determined by **tag suffix only**.
 
-**Tag to release:**
+### How CI detects pre-release
+
+The `setup` job in `.github/workflows/release.yml` checks the tag for `-rc`, `-next`, `-beta`, or `-alpha`:
+
 ```bash
-git tag v0.0.1 && git push origin v0.0.1        # stable
-git tag v0.1.0-beta.1 && git push origin v0.1.0-beta.1  # pre-release
+if echo "$VERSION" | grep -qE '\-(rc|next|beta|alpha)'; then
+  echo "is_prerelease=true"
+fi
 ```
 
-CI auto-detects pre-release from tag suffix (`-rc`, `-beta`, `-alpha`, `-next`).
+- **Pre-release tags** → both marketplaces publish with `--pre-release`; GitHub Pages deploy is skipped.
+- **Stable tags** → both marketplaces publish as stable; GitHub Pages deploy runs.
+
+### Required GitHub secrets
+
+Set these in your repository's **Settings → Secrets and variables → Actions**:
+
+| Secret | Description |
+|--------|-------------|
+| `VSCE_PAT` | VS Code Marketplace Personal Access Token |
+| `OVSX_PAT` | Open VSX Registry access token |
+
+### Tagging examples
+
+```bash
+# Stable patch release
+git tag v1.0.1 && git push origin v1.0.1
+
+# Pre-release
+git tag v1.1.0-beta.1 && git push origin v1.1.0-beta.1
+
+# Graduate pre-release to stable (no package.json change needed)
+git tag v1.1.0 && git push origin v1.1.0
+```
+
+---
+
+## Repository Infrastructure
+
+### CI / Release pipeline
+
+- **`ci.yml`** — triggers on pushes to `main` and on pull requests. Runs lint, build, and unit tests. Does **not** publish or deploy.
+- **`release.yml`** — triggered by version tags (`v*`). Full pipeline: `setup` → `release-build` → `verifier` → `publish-vscode` + `publish-openvsx` (parallel) → `deploy-pages` + `create-release` (parallel, stable only). The `setup` job sets `is_prerelease=true` when the tag contains `-rc`, `-next`, `-beta`, or `-alpha`.
+
+### GitHub automation workflows
+
+- **`all-contributors.yml`** — responds to `/all-contributors add` comments; manages `.all-contributorsrc`.
+- **`stale.yml`** — marks issues/PRs stale after 60 days of inactivity, closes after a further 14 days.
+- **`labels-sync.yml`** — syncs repository labels from `.github/labels.yml` on push to `main`.
+
+### Configuration files
+
+- **`.github/labels.yml`** — defines 14 repository labels (type, priority, status categories).
+- **`.github/release.yml`** — configures auto-generated release notes categories (features, fixes, chores, etc.).
+
+### Devcontainer
+
+`.devcontainer/` provides a Node 20 base image pre-installed with headless test dependencies (`xvfb`, GTK libraries) required for VS Code integration tests. `pnpm install` runs automatically on container create.
+
+### AI tooling
+
+| File | Purpose |
+|---|---|
+| `.coderabbit.yaml` | CodeRabbit AI review config (test suite awareness enabled) |
+| `.github/copilot-instructions.md` | GitHub Copilot workspace instructions |
+| `CLAUDE.md` | Claude Code instructions (this file) |
+| `AGENTS.md` | Generic AI agent instructions |
+| `.cursorignore` | Cursor editor ignore rules |
+
+### All-contributors
+
+`.all-contributorsrc` configures the all-contributors bot. `projectName` and `projectOwner` are wired to `{{EXTENSION_NAME}}` and `{{GITHUB_USERNAME}}` tokens; `contributors` array starts empty.
+
+### Documentation assets
+
+- **`NOTICE.md`** — third-party software notices.
+- **`THIRDPARTY.md`** — license table for bundled dependencies.
+- **`docs/images/`** — media assets for README and VS Code Marketplace listing.
+
+### Coverage
+
+`pnpm run test:unit:coverage` runs Vitest with the v8 provider and outputs `coverage/lcov.info`. In CI this file is uploaded to Codecov automatically.
 
 ---
 

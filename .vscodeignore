@@ -1,22 +1,59 @@
-.vscode/**
-.vscode-test/**
-test/**
-node_modules/**
-out-test/**
-src/**
-esbuild.config.ts
-tsconfig*.json
-vitest.config.ts
-eslint.config.mjs
-.eslintrc*
-.prettierrc*
-.prettierignore
+# ============================================
+# Source & Build Directories
+# ============================================
+src/
+test/
+scripts/
+out-test/
+dist/src/
+dist/test/
+
+# ============================================
+# Dependencies & Package Management
+# ============================================
+node_modules/
+pnpm-lock.yaml
+
+# ============================================
+# Development & CI/CD Configuration
+# ============================================
+.github/
+.husky/
+.gitignore
 .editorconfig
-.husky/**
 .coderabbit.yaml
-site/**
-docs/images/**
-*.md
-!README.md
-!CHANGELOG.md
+.nvmrc
+.prettier*
+eslint*
+tsconfig*.json
+esbuild*
+vitest.config.ts
+
+# ============================================
+# VS Code Configuration & Workspaces
+# ============================================
+.vscode/
+.vscode-test/
+.vscodeignore
+
+# ============================================
+# Build Artifacts & Logs
+# ============================================
 *.vsix
+debug.log
+dist/meta.json
+
+# ============================================
+# Documentation & Content
+# ============================================
+docs/
+site/
+
+# ============================================
+# Project & Documentation Files
+# ============================================
+CLAUDE.md
+AGENTS.md
+CONTRIBUTING.md
+SECURITY.md
+CODE_OF_CONDUCT.md

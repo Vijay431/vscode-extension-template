@@ -1,10 +1,11 @@
 import * as vscode from 'vscode';
 
+import { HelloWorldCommand } from '../commands/HelloWorldCommand';
+import { getService } from '../di/container';
 import type { IAccessibilityService } from '../di/interfaces/IAccessibilityService';
 import type { ILogger } from '../di/interfaces/ILogger';
 import { TYPES } from '../di/types';
-import { getService } from '../di/container';
-import { HelloWorldCommand } from '../commands/HelloWorldCommand';
+
 import { CommandRegistry } from './CommandRegistry';
 
 /**

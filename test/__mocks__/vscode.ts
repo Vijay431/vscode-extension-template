@@ -75,7 +75,12 @@ export const extensions = {
 
 export const Uri = {
   file: (path: string) => ({ fsPath: path, scheme: 'file', path }),
-  parse: (uri: string) => ({ fsPath: uri, scheme: 'file', path: uri }),
+  parse: (uri: string) => {
+    const match = uri.match(/^([a-z][a-z0-9+.-]*):(\/\/)?(.*)$/i);
+    const scheme = match?.[1] ?? 'file';
+    const path = match?.[3] ?? uri;
+    return { fsPath: path, scheme, path };
+  },
 };
 
 export enum DiagnosticSeverity {

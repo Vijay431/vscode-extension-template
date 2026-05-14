@@ -28,7 +28,6 @@ import * as vscode from 'vscode';
  * @category Accessibility
  * @subcategory Utilities
  *
- * @author Vijay Gangatharan <vijayanand431@gmail.com>
  * @since 2.1.0
  */
 

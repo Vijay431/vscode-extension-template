@@ -32,13 +32,13 @@ reviews:
         - All async operations must handle errors; unhandled promise rejections will silently fail in the extension host.
         - Prefer `unknown` over `any` in catch blocks (`useUnknownInCatchVariables` is enabled).
         - Unused locals and parameters are compile errors — flag any that would break the build.
-        - Do not suggest adding test files; the project has no test suite currently.
+        - The project has Vitest unit tests in `test/unit/` and Mocha integration tests in `test/suite/`. Suggest test coverage for new logic when appropriate.
         - Do not suggest npm or yarn commands — this project uses pnpm exclusively.
 
     - path: 'package.json'
       instructions: |
         This is a VS Code extension manifest. Validate that:
-        - Any new `contributes.commands` entries have a matching registration in src/managers/CommandRegistry.ts.
+        - Any new `contributes.commands` entries have a matching registration in src/managers/CommandsManager.ts.
         - `engines.vscode` version is not lowered without justification.
         - No new runtime `dependencies` are added — this extension has zero runtime dependencies by design (devDependencies only).
 
