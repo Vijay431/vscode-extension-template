@@ -274,6 +274,39 @@ git tag v1.1.0 && git push origin v1.1.0
 
 ---
 
+## Hard Constraints
+
+- **pnpm only** — never suggest npm or yarn commands.
+- **Zero runtime dependencies** — do not add entries to `dependencies` in `package.json`; all deps must be `devDependencies`.
+- **No browser globals** — `window`, `document`, `fetch`, `localStorage` are forbidden; all editor interactions use the `vscode` API.
+- **TypeScript strict mode** — flag any `any` usage, unused locals, or unhandled promise rejections; do not weaken tsconfig.
+- **`console.*` exception** — `console.error` is intentionally used in `src/extension.ts` activation error path only (logger not yet initialized). Everywhere else use `this.logger` / `this.logInfo()` etc.
+
+---
+
+## Commit & Branch Conventions
+
+Use [Conventional Commits](https://www.conventionalcommits.org/): `feat(scope): description`, `fix(scope): description`, `chore(scope): description`.
+
+Examples: `feat(hello): add greeting command`, `fix(config): respect disabled state`, `test(unit): cover config validator`.
+
+Branch prefixes: `feature/`, `fix/`, `docs/`, `refactor/`. Hooks and CI enforce a maximum of **15 files** and **3000 changed lines** per commit.
+
+---
+
+## Bundle Size Targets
+
+Production builds only (minified). Dev builds include inline sourcemaps and are naturally larger.
+
+| Artifact | Target |
+|---|---|
+| `dist/extension.js` | < 100 KB |
+| Each `dist/lazy/*.js` | < 50 KB |
+
+esbuild reports warnings when these are exceeded. Check `dist/meta.json` for bundle analysis.
+
+---
+
 ## Steps to Follow
 
 - All new changes should be added to this `CLAUDE.md` file.
