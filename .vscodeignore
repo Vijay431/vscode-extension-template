@@ -28,6 +28,7 @@ eslint*
 tsconfig*.json
 esbuild*
 vitest.config.ts
+install.sh
 
 # ============================================
 # VS Code Configuration & Workspaces
@@ -42,6 +43,19 @@ vitest.config.ts
 *.vsix
 debug.log
 dist/meta.json
+coverage/
+tsconfig.test.json
+.mcp.json
+.vscode-test.mjs
+.lintstagedrc
+.devcontainer/
+.cursorignore
+.code-review-graph
+.worktrees/
+.auto-claude/
+.automaker/
+.claude/
+.sisyphus
 
 # ============================================
 # Documentation & Content

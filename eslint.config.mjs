@@ -841,7 +841,7 @@ export default tseslint.config(
   // Purpose: Allow CommonJS patterns in config files
   // Rationale: Config files use require and module.exports
   {
-    files: ['*.config.js', '*.config.mjs', 'esbuild.config.js'],
+    files: ['*.config.js', '*.config.mjs', '*.config.ts', 'esbuild.config.js'],
 
     // ============================================
     // LANGUAGE OPTIONS - Config File Globals
@@ -880,6 +880,12 @@ export default tseslint.config(
 
       'import/no-dynamic-require': 'off',
       // Reason: Config files use dynamic requires
+
+      'security/detect-non-literal-fs-filename': 'off',
+      // Reason: Build config uses computed paths from known templates, not user input
+
+      'security/detect-object-injection': 'off',
+      // Reason: Build config accesses known object keys safely
     },
   },
 
@@ -918,6 +924,8 @@ export default tseslint.config(
         URL: 'readonly',
         URLSearchParams: 'readonly',
         console: 'readonly',
+        jQuery: 'readonly',
+        $: 'readonly',
       },
     },
     rules: {

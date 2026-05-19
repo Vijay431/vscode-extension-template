@@ -1,10 +1,45 @@
+# Dependencies
 node_modules/
+
+# Build output
 dist/
 out-test/
-*.vsix
-.vscode-test/
-site/_site/
-site/vendor/
-site/.bundle/
 coverage/
+*.vsix
+
+# Compiled test files
+test/**/*.js
+test/**/*.js.map
+
+# Tooling caches & local state
+.claude/
+.code-review-graph/
+.vscode-test/
+.worktrees/
+.auto-claude/
+.automaker/
+.sisyphus
+.auto-claude-security.json
+
+# Logs
+*.log
+debug.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Jekyll site build artifacts
+site/_site/
+site/.bundle/
+site/vendor/
+site/Gemfile.lock
+site/.jekyll-cache/
+
+# Build analysis
 dist/meta.json
+
+# Local-only docs
+TODO.md
+CHANGELOG_RELEASE.md
+IMPLEMENTATION_SUMMARY.md
