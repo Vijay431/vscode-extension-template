@@ -16,7 +16,8 @@
 - [ ] `pnpm run lint` passes
 - [ ] `pnpm run build` succeeds
 - [ ] `pnpm run test:unit` passes
-- [ ] Integration tests verified (F5 in VS Code)
+- [ ] `pnpm run test:unit:coverage` passes
+- [ ] `pnpm run test:integration` passes
 - [ ] Manually tested the affected commands/features
 
 ## Screenshots (if applicable)

@@ -14,12 +14,15 @@ jobs:
   add-contributor:
     name: Add Contributor
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' || startsWith(github.event.comment.body, '@all-contributors please add')
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (
+        startsWith(github.event.comment.body, '@all-contributors please add') &&
+        contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association)
+      )
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install PNPM
         uses: pnpm/action-setup@v4
@@ -41,6 +44,10 @@ jobs:
           COMMENT_BODY: ${{ github.event.comment.body }}
         shell: bash
         run: |
+          if [[ ! "$COMMENT_BODY" =~ ^@all-contributors[[:space:]]+please[[:space:]]+add[[:space:]]+@[^[:space:]]+[[:space:]]+for[[:space:]]+.+$ ]]; then
+            echo "Invalid command format. Expected: @all-contributors please add @username for contributions"
+            exit 1
+          fi
           REQUEST="${COMMENT_BODY#@all-contributors please add }"
           USERNAME="${REQUEST%% for *}"
           CONTRIBUTIONS="${REQUEST##* for }"
