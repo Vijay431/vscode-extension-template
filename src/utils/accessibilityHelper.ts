@@ -25,10 +25,12 @@ import * as vscode from 'vscode';
  * - Making screen reader announcements
  * - Formatting accessible InputBox prompts
  *
+ * @author {{AUTHOR_NAME}} <{{AUTHOR_EMAIL}}>
+ *
  * @category Accessibility
  * @subcategory Utilities
  *
- * @since 2.1.0
+ * @since 1.0.0
  */
 
 /**
