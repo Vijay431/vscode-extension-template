@@ -157,7 +157,9 @@ function initializeCodeCopyButtons() {
       const copyButton = document.createElement('button');
       copyButton.type = 'button';
       copyButton.className = 'copy-button';
-      copyButton.innerHTML = '<i class="fas fa-copy"></i>';
+      copyButton.setAttribute('aria-label', 'Copy code to clipboard');
+      copyButton.innerHTML =
+        '<i class="fas fa-copy" aria-hidden="true"></i><span class="copy-label">Copy</span>';
       copyButton.title = 'Copy to clipboard';
 
       wrapper.style.position = 'relative';
@@ -165,16 +167,17 @@ function initializeCodeCopyButtons() {
 
       copyButton.addEventListener('click', function () {
         const code = codeBlock.textContent;
-        copyToClipboard(code);
+        navigator.clipboard.writeText(code).then(() => {
+          copyButton.innerHTML =
+            '<i class="fas fa-check" aria-hidden="true"></i><span class="copy-label">Copied!</span>';
+          copyButton.classList.add('success');
 
-        const originalHTML = copyButton.innerHTML;
-        copyButton.innerHTML = '<i class="fas fa-check"></i>';
-        copyButton.classList.add('success');
-
-        setTimeout(() => {
-          copyButton.innerHTML = originalHTML;
-          copyButton.classList.remove('success');
-        }, 2000);
+          setTimeout(() => {
+            copyButton.innerHTML =
+              '<i class="fas fa-copy" aria-hidden="true"></i><span class="copy-label">Copy</span>';
+            copyButton.classList.remove('success');
+          }, 2000);
+        });
       });
     }
   });
@@ -224,16 +227,6 @@ function initializeInteractiveElements() {
   const cards = document.querySelectorAll(
     '.feature-card, .service-card, .command-card, .architecture-card, .metric-card, .method-card, .requirement-card, .config-card, .trouble-card, .next-step-card, .import-option, .move-feature, .save-feature, .practice-card',
   );
-
-  cards.forEach((card) => {
-    card.addEventListener('mouseenter', function () {
-      this.style.transform = 'translateY(-5px)';
-    });
-
-    card.addEventListener('mouseleave', function () {
-      this.style.transform = 'translateY(0)';
-    });
-  });
 
   const downloadButtons = document.querySelectorAll(
     '.btn[href*="marketplace"], .btn[href*="releases"]',
@@ -333,11 +326,9 @@ function debounce(func, wait) {
 
 function throttle(func, limit) {
   let inThrottle;
-  return function () {
-    const args = arguments;
-    const context = this;
+  return (...args) => {
     if (!inThrottle) {
-      func.apply(context, args);
+      func(...args);
       inThrottle = true;
       setTimeout(() => (inThrottle = false), limit);
     }

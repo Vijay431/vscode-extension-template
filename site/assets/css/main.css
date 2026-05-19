@@ -126,6 +126,15 @@
 }
 
 /* ===== Keyframes for Micro-animations ===== */
+@keyframes copy-flash {
+  0% {
+    background-color: var(--color-success, #28a745);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
 @keyframes fade-up-in {
   from {
     opacity: 0;

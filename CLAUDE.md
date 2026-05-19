@@ -6,10 +6,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Template Setup
 
-This is a scaffold template. Every `{{TOKEN}}` placeholder (including in this file) is replaced by running:
+This is a scaffold template. Every `{{TOKEN}}` placeholder (including in this file) is replaced by the bootstrap script. Two paths:
 
+**Option A — Curl one-liner (no clone needed):**
 ```bash
-pnpm run init   # interactive prompts → replaces all {{TOKEN}}s → self-deletes init.mjs
+bash <(curl -fsSL https://raw.githubusercontent.com/Vijay431/vscode-extension-template/main/install.sh)
+```
+Script prompts for inputs, clones the template into `./<extension-name>/`, removes the template's `.git/`, replaces all tokens, and self-deletes.
+
+**Option B — Already cloned / GitHub template:**
+```bash
+pnpm run init   # interactive prompts → confirms values → enables workflow placeholders → self-deletes install.sh
 ```
 
 Tokens used: `{{EXTENSION_NAME}}`, `{{DISPLAY_NAME}}`, `{{EXTENSION_ID}}`, `{{PUBLISHER}}`, `{{DESCRIPTION}}`, `{{AUTHOR_NAME}}`, `{{AUTHOR_EMAIL}}`, `{{REPO_URL}}`, `{{SITE_URL}}`, `{{YEAR}}`, `{{GITHUB_USERNAME}}`.
@@ -20,8 +27,8 @@ Tokens used: `{{EXTENSION_NAME}}`, `{{DISPLAY_NAME}}`, `{{EXTENSION_ID}}`, `{{PU
 
 - **Name:** {{DISPLAY_NAME}}
 - **Publisher:** {{PUBLISHER}}
-- **VS Code engine:** >=1.110.0
-- **Node.js:** >=20
+- **VS Code engine:** >=1.111.0
+- **Node.js:** >=22
 - **Package manager:** pnpm
 - **Language:** TypeScript (strict mode)
 - **Bundle tool:** esbuild (via `esbuild.config.ts`)
@@ -31,7 +38,7 @@ Tokens used: `{{EXTENSION_NAME}}`, `{{DISPLAY_NAME}}`, `{{EXTENSION_ID}}`, `{{PU
 ## Development Commands
 
 ```bash
-pnpm run init             # first-time bootstrap: replace {{TOKEN}} placeholders, then self-deletes
+pnpm run init             # first-time bootstrap: replace {{TOKEN}} placeholders, enable workflows, then self-deletes
 pnpm install              # install dependencies
 pnpm run build            # build extension (~1s)
 pnpm run watch            # watch mode
@@ -191,7 +198,7 @@ This project follows [SemVer 2.0.0](https://semver.org/spec/v2.0.0.html). Pre-re
 
 ### How CI detects pre-release
 
-The `setup` job in `.github/workflows/release.yml` checks the tag for `-rc`, `-next`, `-beta`, or `-alpha`:
+After `install.sh` enables workflow placeholders, the `setup` job in `.github/workflows/release.yml` checks the tag for `-rc`, `-next`, `-beta`, or `-alpha`:
 
 ```bash
 if echo "$VERSION" | grep -qE '\-(rc|next|beta|alpha)'; then
@@ -230,14 +237,14 @@ git tag v1.1.0 && git push origin v1.1.0
 
 ### CI / Release pipeline
 
-- **`ci.yml`** — triggers on pushes to `main` and on pull requests. Runs lint, build, and unit tests. Does **not** publish or deploy.
-- **`release.yml`** — triggered by version tags (`v*`). Full pipeline: `setup` → `release-build` → `verifier` → `publish-vscode` + `publish-openvsx` (parallel) → `deploy-pages` + `create-release` (parallel, stable only). The `setup` job sets `is_prerelease=true` when the tag contains `-rc`, `-next`, `-beta`, or `-alpha`.
+- **`ci.yml.init`** — placeholder renamed to `ci.yml` by `install.sh`; then triggers on pushes to `main` and on pull requests. Runs lint, build, and unit tests. Does **not** publish or deploy.
+- **`release.yml.init`** — placeholder renamed to `release.yml` by `install.sh`; then triggered by version tags (`v*`). Full pipeline: `setup` → `release-build` → `verifier` → `publish-vscode` + `publish-openvsx` (parallel) → `deploy-pages` + `create-release` (parallel, stable only). The `setup` job sets `is_prerelease=true` when the tag contains `-rc`, `-next`, `-beta`, or `-alpha`.
 
 ### GitHub automation workflows
 
-- **`all-contributors.yml`** — responds to `/all-contributors add` comments; manages `.all-contributorsrc`.
-- **`stale.yml`** — marks issues/PRs stale after 60 days of inactivity, closes after a further 14 days.
-- **`labels-sync.yml`** — syncs repository labels from `.github/labels.yml` on push to `main`.
+- **`all-contributors.yml.init`** — placeholder enabled by `install.sh`; then responds to `/all-contributors add` comments and manages `.all-contributorsrc`.
+- **`stale.yml.init`** — placeholder enabled by `install.sh`; then marks issues/PRs stale after 60 days of inactivity and closes after a further 14 days.
+- **`labels-sync.yml.init`** — placeholder enabled by `install.sh`; then syncs repository labels from `.github/labels.yml` on push to `main`.
 
 ### Configuration files
 
@@ -246,7 +253,7 @@ git tag v1.1.0 && git push origin v1.1.0
 
 ### Devcontainer
 
-`.devcontainer/` provides a Node 20 base image pre-installed with headless test dependencies (`xvfb`, GTK libraries) required for VS Code integration tests. `pnpm install` runs automatically on container create.
+`.devcontainer/` provides a Node 22 base image pre-installed with headless test dependencies (`xvfb`, GTK libraries) required for VS Code integration tests. `pnpm install` runs automatically on container create.
 
 ### AI tooling
 
@@ -271,6 +278,39 @@ git tag v1.1.0 && git push origin v1.1.0
 ### Coverage
 
 `pnpm run test:unit:coverage` runs Vitest with the v8 provider and outputs `coverage/lcov.info`. In CI this file is uploaded to Codecov automatically.
+
+---
+
+## Hard Constraints
+
+- **pnpm only** — never suggest npm or yarn commands.
+- **Zero runtime dependencies** — do not add entries to `dependencies` in `package.json`; all deps must be `devDependencies`.
+- **No browser globals** — `window`, `document`, `fetch`, `localStorage` are forbidden; all editor interactions use the `vscode` API.
+- **TypeScript strict mode** — flag any `any` usage, unused locals, or unhandled promise rejections; do not weaken tsconfig.
+- **`console.*` exception** — `console.error` is intentionally used in `src/extension.ts` activation error path only (logger not yet initialized). Everywhere else use `this.logger` / `this.logInfo()` etc.
+
+---
+
+## Commit & Branch Conventions
+
+Use [Conventional Commits](https://www.conventionalcommits.org/): `feat(scope): description`, `fix(scope): description`, `chore(scope): description`.
+
+Examples: `feat(hello): add greeting command`, `fix(config): respect disabled state`, `test(unit): cover config validator`.
+
+Branch prefixes: `feature/`, `fix/`, `docs/`, `refactor/`. Hooks and CI enforce a maximum of **10 files** and **400 changed lines** per commit. Use the `size/override` label on a PR to bypass the CI size check for large sweeping refactors.
+
+---
+
+## Bundle Size Targets
+
+Production builds only (minified). Dev builds include inline sourcemaps and are naturally larger.
+
+| Artifact | Target |
+|---|---|
+| `dist/extension.js` | < 100 KB |
+| Each `dist/lazy/*.js` | < 50 KB |
+
+esbuild reports warnings when these are exceeded. Check `dist/meta.json` for bundle analysis.
 
 ---
 
