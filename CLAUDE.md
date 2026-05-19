@@ -6,10 +6,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Template Setup
 
-This is a scaffold template. Every `{{TOKEN}}` placeholder (including in this file) is replaced by running:
+This is a scaffold template. Every `{{TOKEN}}` placeholder (including in this file) is replaced by the bootstrap script. Two paths:
 
+**Option A — Curl one-liner (no clone needed):**
 ```bash
-pnpm run init   # interactive prompts → replaces all {{TOKEN}}s → self-deletes init.mjs
+bash <(curl -fsSL https://raw.githubusercontent.com/Vijay431/vscode-extension-template/main/install.sh)
+```
+Script prompts for inputs, clones the template into `./<extension-name>/`, removes the template's `.git/`, replaces all tokens, and self-deletes.
+
+**Option B — Already cloned / GitHub template:**
+```bash
+pnpm run init   # interactive prompts → confirms values → replaces all {{TOKEN}}s → self-deletes install.sh
 ```
 
 Tokens used: `{{EXTENSION_NAME}}`, `{{DISPLAY_NAME}}`, `{{EXTENSION_ID}}`, `{{PUBLISHER}}`, `{{DESCRIPTION}}`, `{{AUTHOR_NAME}}`, `{{AUTHOR_EMAIL}}`, `{{REPO_URL}}`, `{{SITE_URL}}`, `{{YEAR}}`, `{{GITHUB_USERNAME}}`.
@@ -20,8 +27,8 @@ Tokens used: `{{EXTENSION_NAME}}`, `{{DISPLAY_NAME}}`, `{{EXTENSION_ID}}`, `{{PU
 
 - **Name:** {{DISPLAY_NAME}}
 - **Publisher:** {{PUBLISHER}}
-- **VS Code engine:** >=1.110.0
-- **Node.js:** >=20
+- **VS Code engine:** >=1.111.0
+- **Node.js:** >=22
 - **Package manager:** pnpm
 - **Language:** TypeScript (strict mode)
 - **Bundle tool:** esbuild (via `esbuild.config.ts`)
@@ -246,7 +253,7 @@ git tag v1.1.0 && git push origin v1.1.0
 
 ### Devcontainer
 
-`.devcontainer/` provides a Node 20 base image pre-installed with headless test dependencies (`xvfb`, GTK libraries) required for VS Code integration tests. `pnpm install` runs automatically on container create.
+`.devcontainer/` provides a Node 22 base image pre-installed with headless test dependencies (`xvfb`, GTK libraries) required for VS Code integration tests. `pnpm install` runs automatically on container create.
 
 ### AI tooling
 
@@ -290,7 +297,7 @@ Use [Conventional Commits](https://www.conventionalcommits.org/): `feat(scope): 
 
 Examples: `feat(hello): add greeting command`, `fix(config): respect disabled state`, `test(unit): cover config validator`.
 
-Branch prefixes: `feature/`, `fix/`, `docs/`, `refactor/`. Hooks and CI enforce a maximum of **15 files** and **3000 changed lines** per commit.
+Branch prefixes: `feature/`, `fix/`, `docs/`, `refactor/`. Hooks and CI enforce a maximum of **10 files** and **400 changed lines** per commit. Use the `size/override` label on a PR to bypass the CI size check for large sweeping refactors.
 
 ---
 

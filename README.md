@@ -18,25 +18,35 @@ A production-ready, opinionated template for building VS Code extensions. Mirror
 
 ## Bootstrap a new extension
 
-### Option A — GitHub template (recommended)
+### Option A — Curl one-liner (recommended)
+
+No clone needed. Run from any directory:
+
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/Vijay431/vscode-extension-template/main/install.sh)
+```
+
+The script prompts for your extension name and other details, clones the template into `./<extension-name>/`, removes the template git history, replaces all `{{TOKEN}}` placeholders, and self-deletes.
+
+### Option B — GitHub template
 
 1. Click **Use this template** on GitHub.
 2. Clone your new repo locally.
 3. Run `pnpm run init` and follow the prompts.
 
-### Option B — degit
+### Option C — degit / git clone
 
 ```bash
-pnpm dlx degit YOUR_GITHUB_USER/vscode-extension-template my-extension
+pnpm dlx degit Vijay431/vscode-extension-template my-extension
 cd my-extension
 pnpm run init
 ```
 
-The `init.mjs` script:
-- Prompts for extension name, publisher, description, author, repo URL, etc.
+The `install.sh` script (both Option B and C):
+- Prompts for extension name, publisher, description, author, repo URL, etc. — press Enter to accept smart defaults.
+- Shows all values in an alignment-formatted confirmation block before applying.
 - Replaces all `{{TOKEN}}` placeholders across every file.
-- Runs `pnpm install && pnpm run build && pnpm run test:unit` to verify everything builds.
-- Removes itself and the `init` npm script, leaving a clean repo.
+- Verifies no tokens remain, then self-deletes, leaving a clean repo.
 
 ## Adding your first real command
 

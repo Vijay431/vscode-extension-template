@@ -21,7 +21,7 @@ By participating in this project, you are expected to uphold our [Code of Conduc
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) (version 20+ required, 20, 22, and 24 supported)
+- [Node.js](https://nodejs.org/) (version 22+ required, 22, 24, and 26 supported)
 - [PNPM](https://pnpm.io/) (install with `npm install -g pnpm`)
 - [Visual Studio Code](https://code.visualstudio.com/) (for development and testing)
 - [Git](https://git-scm.com/)
@@ -91,7 +91,8 @@ The project has two test layers:
 | Layer       | Command                     | Framework                       | What's covered                                                     |
 | ----------- | --------------------------- | ------------------------------- | ------------------------------------------------------------------ |
 | Unit        | `pnpm run test:unit`        | Vitest                          | Infrastructure utilities and services with mocked VS Code API      |
-| Integration | `pnpm run test:integration` | Mocha + `@vscode/test-electron` | All 11 user-facing features, end-to-end in a real VS Code instance |
+| Unit (cov)  | `pnpm run test:unit:coverage` | Vitest + v8                  | Same as above; outputs `coverage/lcov.info` for Codecov            |
+| Integration | `pnpm run test:integration` | Mocha + `@vscode/test-electron` | Feature-level tests, end-to-end in a real VS Code instance        |
 
 **Unit tests** cover: `Cache`, `pathValidator`, `ConfigValidator`, `accessibilityHelper`, and services under `src/services/`.
 
@@ -173,8 +174,8 @@ Breaking changes: append `!` after the type — `feat!: remove deprecated API`
 
 | Limit                        | Value   | Rationale                            |
 | ---------------------------- | ------- | ------------------------------------ |
-| Max files per commit         | **15**  | Keeps commits focused and reviewable |
-| Max lines changed per commit | **3000** | Prevents large, hard-to-review diffs |
+| Max files per commit         | **10**  | Keeps commits focused and reviewable |
+| Max lines changed per commit | **400** | Prevents large, hard-to-review diffs |
 
 If your change exceeds these limits, split it into multiple focused commits:
 
@@ -187,7 +188,11 @@ git add src/commands/openInTerminal.ts
 git commit -m "feat(terminal): add openInTerminal command handler"
 ```
 
-> **Note:** `--no-verify` bypasses local hooks but the CI `commit-size` job will still block oversized PRs.
+> **Note:** `--no-verify` bypasses local hooks but the CI `commit-size` job will still block oversized PRs. Add the `size/override` label to your PR to bypass the CI check for large sweeping refactors (grandfathered migrations, generated-file churn, etc.).
+
+#### Grandfathered History
+
+Large commits that pre-date these limits (legacy migrations, bulk renames) are excluded from retroactive enforcement. Only new commits are checked.
 
 ### Pull Request Process
 

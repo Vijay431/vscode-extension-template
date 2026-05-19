@@ -13,10 +13,11 @@ This is a TypeScript VS Code extension. Source code lives in `src/`: command han
 - `pnpm run lint:fix`: apply automatic ESLint fixes.
 - `pnpm run format`: format the repository with Prettier.
 - `pnpm run test:unit`: run Vitest unit tests.
+- `pnpm run test:unit:coverage`: run unit tests with v8 coverage (outputs `coverage/lcov.info`).
 - `pnpm run test:integration`: compile tests and run VS Code integration tests.
 - `pnpm run package`: create a `.vsix` package.
 
-Use Node.js 20+ and pnpm. For manual testing, open the repo in VS Code and press `F5`.
+Use Node.js 22+ and pnpm. For manual testing, open the repo in VS Code and press `F5`.
 
 ## Coding Style & Naming Conventions
 
@@ -28,7 +29,7 @@ Add unit tests in `test/unit/*.test.ts` for services, utilities, and validators.
 
 ## Commit & Pull Request Guidelines
 
-Use Conventional Commits, for example `feat(hello): add greeting command`, `fix(config): respect disabled state`, or `test(unit): cover config validator`. Hooks and CI enforce a maximum of 15 files and 600 changed lines per commit. Branch from `main` using prefixes such as `feature/`, `fix/`, `docs/`, or `refactor/`.
+Use Conventional Commits, for example `feat(hello): add greeting command`, `fix(config): respect disabled state`, or `test(unit): cover config validator`. Hooks and CI enforce a maximum of 10 files and 400 changed lines per commit. Apply the `size/override` label on a PR to bypass CI size checks for sweeping refactors. Workflow or community automation changes should also update README.md, CHANGELOG.md, CLAUDE.md, CONTRIBUTING.md, and .github/copilot-instructions.md. Branch from `main` using prefixes such as `feature/`, `fix/`, `docs/`, or `refactor/`.
 
 Pull requests should include a clear description, linked issues when applicable, and screenshots or recordings for visible VS Code UI changes. Before opening a PR, run `pnpm run lint`, `pnpm run build`, and relevant tests.
 
