@@ -16,7 +16,7 @@ Script prompts for inputs, clones the template into `./<extension-name>/`, remov
 
 **Option B — Already cloned / GitHub template:**
 ```bash
-pnpm run init   # interactive prompts → confirms values → replaces all {{TOKEN}}s → self-deletes install.sh
+pnpm run init   # interactive prompts → confirms values → enables workflow placeholders → self-deletes install.sh
 ```
 
 Tokens used: `{{EXTENSION_NAME}}`, `{{DISPLAY_NAME}}`, `{{EXTENSION_ID}}`, `{{PUBLISHER}}`, `{{DESCRIPTION}}`, `{{AUTHOR_NAME}}`, `{{AUTHOR_EMAIL}}`, `{{REPO_URL}}`, `{{SITE_URL}}`, `{{YEAR}}`, `{{GITHUB_USERNAME}}`.
@@ -38,7 +38,7 @@ Tokens used: `{{EXTENSION_NAME}}`, `{{DISPLAY_NAME}}`, `{{EXTENSION_ID}}`, `{{PU
 ## Development Commands
 
 ```bash
-pnpm run init             # first-time bootstrap: replace {{TOKEN}} placeholders, then self-deletes
+pnpm run init             # first-time bootstrap: replace {{TOKEN}} placeholders, enable workflows, then self-deletes
 pnpm install              # install dependencies
 pnpm run build            # build extension (~1s)
 pnpm run watch            # watch mode
@@ -198,7 +198,7 @@ This project follows [SemVer 2.0.0](https://semver.org/spec/v2.0.0.html). Pre-re
 
 ### How CI detects pre-release
 
-The `setup` job in `.github/workflows/release.yml` checks the tag for `-rc`, `-next`, `-beta`, or `-alpha`:
+After `install.sh` enables workflow placeholders, the `setup` job in `.github/workflows/release.yml` checks the tag for `-rc`, `-next`, `-beta`, or `-alpha`:
 
 ```bash
 if echo "$VERSION" | grep -qE '\-(rc|next|beta|alpha)'; then
@@ -237,14 +237,14 @@ git tag v1.1.0 && git push origin v1.1.0
 
 ### CI / Release pipeline
 
-- **`ci.yml`** — triggers on pushes to `main` and on pull requests. Runs lint, build, and unit tests. Does **not** publish or deploy.
-- **`release.yml`** — triggered by version tags (`v*`). Full pipeline: `setup` → `release-build` → `verifier` → `publish-vscode` + `publish-openvsx` (parallel) → `deploy-pages` + `create-release` (parallel, stable only). The `setup` job sets `is_prerelease=true` when the tag contains `-rc`, `-next`, `-beta`, or `-alpha`.
+- **`ci.yml.init`** — placeholder renamed to `ci.yml` by `install.sh`; then triggers on pushes to `main` and on pull requests. Runs lint, build, and unit tests. Does **not** publish or deploy.
+- **`release.yml.init`** — placeholder renamed to `release.yml` by `install.sh`; then triggered by version tags (`v*`). Full pipeline: `setup` → `release-build` → `verifier` → `publish-vscode` + `publish-openvsx` (parallel) → `deploy-pages` + `create-release` (parallel, stable only). The `setup` job sets `is_prerelease=true` when the tag contains `-rc`, `-next`, `-beta`, or `-alpha`.
 
 ### GitHub automation workflows
 
-- **`all-contributors.yml`** — responds to `/all-contributors add` comments; manages `.all-contributorsrc`.
-- **`stale.yml`** — marks issues/PRs stale after 60 days of inactivity, closes after a further 14 days.
-- **`labels-sync.yml`** — syncs repository labels from `.github/labels.yml` on push to `main`.
+- **`all-contributors.yml.init`** — placeholder enabled by `install.sh`; then responds to `/all-contributors add` comments and manages `.all-contributorsrc`.
+- **`stale.yml.init`** — placeholder enabled by `install.sh`; then marks issues/PRs stale after 60 days of inactivity and closes after a further 14 days.
+- **`labels-sync.yml.init`** — placeholder enabled by `install.sh`; then syncs repository labels from `.github/labels.yml` on push to `main`.
 
 ### Configuration files
 

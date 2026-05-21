@@ -12,7 +12,7 @@ A production-ready, opinionated template for building VS Code extensions. Mirror
 | **Services** | `ConfigurationService`, `AccessibilityService` wired at startup |
 | **Utils** | `Logger`, `Cache` (LRU + TTL), `ConfigValidator`, `PathValidator`, accessibility helpers |
 | **Tests** | Vitest unit tests (no live VS Code); Mocha integration tests (live Extension Host via `@vscode/test-electron`) |
-| **CI/CD** | GitHub Actions: lint → unit tests → integration tests → cross-platform build → release → dual publish → GitHub Pages |
+| **CI/CD** | Placeholder GitHub Actions that become active after bootstrap: lint → unit tests → integration tests → cross-platform build → release → dual publish → GitHub Pages |
 | **Docs site** | Jekyll on GitHub Pages; assets/layouts/pages included |
 | **Starter command** | Hello World wired end-to-end (DI → manager → command → test) |
 
@@ -46,6 +46,7 @@ The `install.sh` script (both Option B and C):
 - Prompts for extension name, publisher, description, author, repo URL, etc. — press Enter to accept smart defaults.
 - Shows all values in an alignment-formatted confirmation block before applying.
 - Replaces all `{{TOKEN}}` placeholders across every file.
+- Enables GitHub Actions by renaming `.github/workflows/*.yml.init` placeholders to normal `.yml` workflow files.
 - Verifies no tokens remain, then self-deletes, leaving a clean repo.
 
 ## Adding your first real command

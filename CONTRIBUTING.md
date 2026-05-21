@@ -206,7 +206,7 @@ Large commits that pre-date these limits (legacy migrations, bulk renames) are e
 
 ### CI Workflows
 
-The repository uses a single consolidated GitHub Actions workflow at `.github/workflows/ci.yml`.
+The template stores workflows as `.github/workflows/*.yml.init` placeholders so they do not run before bootstrap. `install.sh` renames them to normal `.yml` files during initialization. After initialization, the repository uses a single consolidated GitHub Actions workflow at `.github/workflows/ci.yml`.
 
 **On every push and PR:**
 
