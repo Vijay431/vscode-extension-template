@@ -96,6 +96,33 @@ else
   sedi() { sed -i '' "$@"; }
 fi
 
+enable_workflow_placeholders() {
+  local workflow_dir=".github/workflows"
+  local enabled=0
+
+  [[ -d "$workflow_dir" ]] || return 0
+
+  shopt -s nullglob
+  local placeholders=("$workflow_dir"/*.yml.init "$workflow_dir"/*.yaml.init)
+  shopt -u nullglob
+
+  for placeholder in "${placeholders[@]}"; do
+    local target="${placeholder%.init}"
+    if [[ -e "$target" ]]; then
+      echo "✗ Cannot enable workflow placeholder: '$target' already exists." >&2
+      echo "  Remove either '$placeholder' or '$target', then re-run." >&2
+      exit 1
+    fi
+
+    mv -- "$placeholder" "$target"
+    enabled=$((enabled + 1))
+  done
+
+  if [[ "$enabled" -gt 0 ]]; then
+    echo "  ✓ Enabled ${enabled} GitHub Actions workflow placeholder(s)."
+  fi
+}
+
 # ---- preflight (bootstrap mode) --------------------------------------------
 
 if [[ "$MODE" == "bootstrap" ]]; then
@@ -269,6 +296,12 @@ for f in "${FILES[@]}"; do
 done
 
 echo "  ✓ Processed ${replaced} files."
+
+# ---- enable workflow placeholders -----------------------------------------
+
+echo ""
+echo "Enabling GitHub Actions workflow placeholders…"
+enable_workflow_placeholders
 
 # ---- verify no tokens remain -----------------------------------------------
 
