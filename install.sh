@@ -2,28 +2,18 @@
 set -euo pipefail
 
 # ---------------------------------------------------------------------------
-# Template bootstrap — dual mode:
-#   Bootstrap mode  (curl-pipe, no repo): clones template, replaces tokens.
-#   Local mode      (already cloned):     replaces tokens in place.
+# VS Code Extension Template — bootstrap
 #
-# Bootstrap usage:
+# Usage:
 #   bash <(curl -fsSL https://raw.githubusercontent.com/Vijay431/vscode-extension-template/main/install.sh)
 #
-# Local usage (after cloning or via GitHub template):
-#   pnpm run init
+# Prompts for: project-id, project-name, package manager (pnpm default).
+# Creates ./<project-id>/, clones the template, fills all {{TOKEN}} placeholders,
+# installs dependencies, and exits with "Happy coding!"
 # ---------------------------------------------------------------------------
 
 TEMPLATE_REPO_URL="https://github.com/Vijay431/vscode-extension-template.git"
 TEMPLATE_BRANCH="main"
-
-# ---- mode detection --------------------------------------------------------
-
-# Bootstrap mode: package.json missing OR {{EXTENSION_NAME}} sentinel absent
-if [[ ! -f package.json ]] || ! grep -qF '{{EXTENSION_NAME}}' package.json 2>/dev/null; then
-  MODE="bootstrap"
-else
-  MODE="local"
-fi
 
 # ---- helpers ---------------------------------------------------------------
 
@@ -68,25 +58,8 @@ to_camel_case() {
   }'
 }
 
-normalize_repo_url() {
-  local raw="$1"
-  if [[ "$raw" =~ ^git@github\.com:(.+)\.git$ ]]; then
-    echo "https://github.com/${BASH_REMATCH[1]}"
-  elif [[ "$raw" =~ ^git@github\.com:(.+)$ ]]; then
-    echo "https://github.com/${BASH_REMATCH[1]}"
-  elif [[ "$raw" =~ ^https://github\.com/(.+)\.git$ ]]; then
-    echo "https://github.com/${BASH_REMATCH[1]}"
-  else
-    echo "${raw%.git}"
-  fi
-}
-
-extract_github_username() {
-  echo "$1" | sed 's|https://github.com/||' | cut -d'/' -f1
-}
-
-extract_repo_name() {
-  echo "$1" | sed 's|https://github.com/||' | cut -d'/' -f2
+slugify() {
+  echo "$1" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | sed 's/^-\|-$//g'
 }
 
 # Portable sed -i (macOS vs Linux)
@@ -96,119 +69,94 @@ else
   sedi() { sed -i '' "$@"; }
 fi
 
-enable_workflow_placeholders() {
-  local workflow_dir=".github/workflows"
-  local enabled=0
+setup_provider() {
+  local provider="$1"
 
-  [[ -d "$workflow_dir" ]] || return 0
-
-  shopt -s nullglob
-  local placeholders=("$workflow_dir"/*.yml.init "$workflow_dir"/*.yaml.init)
-  shopt -u nullglob
-
-  for placeholder in "${placeholders[@]}"; do
-    local target="${placeholder%.init}"
-    if [[ -e "$target" ]]; then
-      echo "✗ Cannot enable workflow placeholder: '$target' already exists." >&2
-      echo "  Remove either '$placeholder' or '$target', then re-run." >&2
+  if [[ "$provider" == "npm" ]]; then
+    if ! command -v npm &>/dev/null; then
+      echo "✗ npm not found. Install Node.js from https://nodejs.org/ and re-run." >&2
       exit 1
     fi
-
-    mv -- "$placeholder" "$target"
-    enabled=$((enabled + 1))
-  done
-
-  if [[ "$enabled" -gt 0 ]]; then
-    echo "  ✓ Enabled ${enabled} GitHub Actions workflow placeholder(s)."
+    return 0
   fi
+
+  # pnpm or yarn — try corepack first (ships with Node >=16)
+  if command -v "$provider" &>/dev/null; then
+    return 0
+  fi
+
+  if command -v corepack &>/dev/null; then
+    echo "  Setting up $provider via corepack…"
+    corepack enable "$provider" 2>/dev/null || true
+    corepack prepare "${provider}@latest" --activate 2>/dev/null || true
+    if command -v "$provider" &>/dev/null; then
+      return 0
+    fi
+  fi
+
+  echo "✗ $provider not found." >&2
+  echo "  Install it with: npm install -g $provider" >&2
+  exit 1
 }
 
-# ---- preflight (bootstrap mode) --------------------------------------------
+# ---- preflight -------------------------------------------------------------
 
-if [[ "$MODE" == "bootstrap" ]]; then
-  for cmd in git curl; do
-    if ! command -v "$cmd" &>/dev/null; then
-      echo "✗ Required tool not found: $cmd" >&2
-      echo "  Install $cmd and re-run." >&2
-      exit 1
-    fi
-  done
+if ! command -v git &>/dev/null; then
+  echo "✗ git not found. Install git and re-run." >&2
+  exit 1
 fi
 
-# ---- compute defaults ------------------------------------------------------
+# ---- collect defaults from git config --------------------------------------
 
 DEFAULT_AUTHOR_NAME=$(git config --get user.name 2>/dev/null || echo "")
 DEFAULT_AUTHOR_EMAIL=$(git config --get user.email 2>/dev/null || echo "")
 DEFAULT_YEAR=$(date +%Y)
 
-if [[ "$MODE" == "local" ]]; then
-  _raw_remote=$(git config --get remote.origin.url 2>/dev/null || echo "")
-  DEFAULT_REPO_URL=$(normalize_repo_url "$_raw_remote")
-  DEFAULT_GITHUB_USERNAME=$(extract_github_username "$DEFAULT_REPO_URL")
-  _repo_basename=$(extract_repo_name "$DEFAULT_REPO_URL")
-  DEFAULT_EXTENSION_NAME=$(basename "$PWD" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9-]/-/g')
-  DEFAULT_SITE_URL="https://${DEFAULT_GITHUB_USERNAME}.github.io/${_repo_basename}"
-else
-  # bootstrap: no cwd repo context — leave fields empty/derived after EXTENSION_NAME
-  DEFAULT_EXTENSION_NAME=""
-  DEFAULT_REPO_URL=""
-  DEFAULT_GITHUB_USERNAME=""
-  DEFAULT_SITE_URL=""
-fi
-
-DEFAULT_PUBLISHER="$DEFAULT_GITHUB_USERNAME"
-
-# ---- collect inputs --------------------------------------------------------
+# ---- prompt ----------------------------------------------------------------
 
 echo ""
-if [[ "$MODE" == "bootstrap" ]]; then
-  echo "VS Code Extension Template — Bootstrap (auto-clone)"
-else
-  echo "VS Code Extension Template — Bootstrap"
-fi
-echo "────────────────────────────────────────"
+echo "VS Code Extension Template — Bootstrap"
+echo "───────────────────────────────────────"
 echo "Press Enter to accept the default shown in [brackets]."
 echo ""
 
-prompt_with_default "Extension name"    "$DEFAULT_EXTENSION_NAME"    EXTENSION_NAME     "true"
+prompt_with_default "Project ID (kebab)"  ""      PROJECT_ID    "true"
 
-# Derive display/ID defaults from the entered name
-DERIVED_DISPLAY_NAME=$(to_title_case "$EXTENSION_NAME")
-DERIVED_EXTENSION_ID=$(to_camel_case "$EXTENSION_NAME")
+DERIVED_PROJECT_NAME=$(to_title_case "$PROJECT_ID")
+prompt_with_default "Project name"        "$DERIVED_PROJECT_NAME"  PROJECT_NAME  "true"
+prompt_with_default "Package manager"     "pnpm"   PROVIDER      "false"
 
-prompt_with_default "Display name"      "$DERIVED_DISPLAY_NAME"      DISPLAY_NAME       "true"
-prompt_with_default "Extension ID"      "$DERIVED_EXTENSION_ID"      EXTENSION_ID       "true"
-prompt_with_default "Publisher"         "$DEFAULT_PUBLISHER"         PUBLISHER          "true"
-prompt_with_default "Description"       ""                            DESCRIPTION        "true"
-prompt_with_default "Author name"       "$DEFAULT_AUTHOR_NAME"       AUTHOR_NAME        "true"
-prompt_with_default "Author email"      "$DEFAULT_AUTHOR_EMAIL"      AUTHOR_EMAIL       "true"
-prompt_with_default "Repository URL"    "$DEFAULT_REPO_URL"          REPO_URL           "true"
+# Normalise provider
+PROVIDER="${PROVIDER:-pnpm}"
+if [[ "$PROVIDER" != "npm" && "$PROVIDER" != "pnpm" && "$PROVIDER" != "yarn" ]]; then
+  echo "  ⚠ Unknown provider '$PROVIDER'. Falling back to pnpm." >&2
+  PROVIDER="pnpm"
+fi
 
-# Derive SITE_URL and GITHUB_USERNAME from entered REPO_URL
-_entered_username=$(extract_github_username "$REPO_URL")
-_entered_repo=$(extract_repo_name "$REPO_URL")
-DERIVED_SITE_URL="https://${_entered_username}.github.io/${_entered_repo}"
-DERIVED_GITHUB_USERNAME="$_entered_username"
+# ---- derive remaining tokens -----------------------------------------------
 
-prompt_with_default "Site URL"          "$DERIVED_SITE_URL"          SITE_URL           "false"
-prompt_with_default "GitHub username"   "$DERIVED_GITHUB_USERNAME"   GITHUB_USERNAME    "true"
-prompt_with_default "Year"              "$DEFAULT_YEAR"              YEAR               "true"
+EXTENSION_NAME="$PROJECT_ID"
+EXTENSION_ID=$(to_camel_case "$PROJECT_ID")
+DISPLAY_NAME="$PROJECT_NAME"
+AUTHOR_NAME="${DEFAULT_AUTHOR_NAME:-Your Name}"
+AUTHOR_EMAIL="${DEFAULT_AUTHOR_EMAIL:-you@example.com}"
+YEAR="$DEFAULT_YEAR"
+DESCRIPTION="A VS Code extension."
+GITHUB_USERNAME=$(slugify "${DEFAULT_AUTHOR_NAME:-your-username}")
+PUBLISHER="$GITHUB_USERNAME"
+REPO_URL="https://github.com/${GITHUB_USERNAME}/${PROJECT_ID}"
+SITE_URL="https://${GITHUB_USERNAME}.github.io/${PROJECT_ID}"
 
 # ---- confirmation ----------------------------------------------------------
 
 echo ""
-echo "Review values:"
-printf "  %-22s = %s\n" "EXTENSION_NAME"   "$EXTENSION_NAME"
-printf "  %-22s = %s\n" "DISPLAY_NAME"     "$DISPLAY_NAME"
-printf "  %-22s = %s\n" "EXTENSION_ID"     "$EXTENSION_ID"
-printf "  %-22s = %s\n" "PUBLISHER"        "$PUBLISHER"
-printf "  %-22s = %s\n" "DESCRIPTION"      "$DESCRIPTION"
-printf "  %-22s = %s\n" "AUTHOR_NAME"      "$AUTHOR_NAME"
-printf "  %-22s = %s\n" "AUTHOR_EMAIL"     "$AUTHOR_EMAIL"
-printf "  %-22s = %s\n" "REPO_URL"         "$REPO_URL"
-printf "  %-22s = %s\n" "SITE_URL"         "$SITE_URL"
-printf "  %-22s = %s\n" "GITHUB_USERNAME"  "$GITHUB_USERNAME"
-printf "  %-22s = %s\n" "YEAR"             "$YEAR"
+echo "Review:"
+printf "  %-22s = %s\n" "Project ID"       "$PROJECT_ID"
+printf "  %-22s = %s\n" "Project name"     "$PROJECT_NAME"
+printf "  %-22s = %s\n" "Package manager"  "$PROVIDER"
+printf "  %-22s = %s\n" "Extension ID"     "$EXTENSION_ID"
+printf "  %-22s = %s\n" "Author"           "$AUTHOR_NAME <$AUTHOR_EMAIL>"
+printf "  %-22s = %s\n" "Repo URL"         "$REPO_URL"
 echo ""
 printf "Apply? [y/N]: "
 read -r confirm
@@ -218,39 +166,44 @@ if [[ "${confirm,,}" != "y" ]]; then
   exit 0
 fi
 
-# ---- bootstrap: clone repo -------------------------------------------------
-
-if [[ "$MODE" == "bootstrap" ]]; then
-  TARGET_DIR="$EXTENSION_NAME"
-  if [[ -e "$TARGET_DIR" && -n "$(ls -A "$TARGET_DIR" 2>/dev/null)" ]]; then
-    echo "✗ Directory '$TARGET_DIR' already exists and is not empty." >&2
-    exit 1
-  fi
-
-  echo ""
-  echo "Cloning template…"
-  git clone --depth 1 --branch "$TEMPLATE_BRANCH" "$TEMPLATE_REPO_URL" "$TARGET_DIR"
-  echo "  ✓ Cloned into ./$TARGET_DIR"
-
-  cd "$TARGET_DIR"
-
-  echo "  Removing template git history…"
-  rm -rf .git
-fi
-
-# ---- apply replacements ----------------------------------------------------
+# ---- provider setup --------------------------------------------------------
 
 echo ""
-echo "Replacing tokens…"
+echo "Setting up package manager…"
+setup_provider "$PROVIDER"
+echo "  ✓ $PROVIDER ready."
 
-# Collect files (prefer git ls-files in local mode, fall back to find)
-if [[ "$MODE" == "local" ]] && git rev-parse --is-inside-work-tree &>/dev/null 2>&1; then
-  mapfile -t FILES < <(git ls-files)
-else
-  mapfile -t FILES < <(find . -type f | sed 's|^\./||')
+# ---- check target dir ------------------------------------------------------
+
+TARGET_DIR="$PROJECT_ID"
+if [[ -e "$TARGET_DIR" ]] && [[ -n "$(ls -A "$TARGET_DIR" 2>/dev/null)" ]]; then
+  echo "✗ Directory './$TARGET_DIR' already exists and is not empty." >&2
+  echo "  Remove or rename it, then re-run." >&2
+  exit 1
 fi
 
-# Exclusion patterns
+# ---- clone -----------------------------------------------------------------
+
+echo ""
+echo "Cloning template…"
+git clone --depth 1 --branch "$TEMPLATE_BRANCH" "$TEMPLATE_REPO_URL" "$TARGET_DIR"
+echo "  ✓ Cloned into ./$TARGET_DIR"
+
+cd "$TARGET_DIR"
+
+echo "  Removing template git history…"
+rm -rf .git
+
+# Remove the bootstrap script from the clone — it doesn't belong in the new project
+rm -f install.sh
+
+# ---- replace tokens --------------------------------------------------------
+
+echo ""
+echo "Filling in project tokens…"
+
+mapfile -t FILES < <(find . -type f | sed 's|^\./||')
+
 EXCLUDE_PATTERNS=(
   'node_modules/'
   '^dist/'
@@ -264,7 +217,6 @@ EXCLUDE_PATTERNS=(
   '\.ico$'
   '\.vsix$'
   'pnpm-lock\.yaml$'
-  '^install\.sh$'
 )
 
 replaced=0
@@ -297,43 +249,53 @@ done
 
 echo "  ✓ Processed ${replaced} files."
 
-# ---- enable workflow placeholders -----------------------------------------
-
-echo ""
-echo "Enabling GitHub Actions workflow placeholders…"
-enable_workflow_placeholders
-
 # ---- verify no tokens remain -----------------------------------------------
 
 remaining=$(grep -rE '\{\{(EXTENSION_NAME|DISPLAY_NAME|EXTENSION_ID|PUBLISHER|DESCRIPTION|AUTHOR_NAME|AUTHOR_EMAIL|REPO_URL|SITE_URL|GITHUB_USERNAME|YEAR)\}\}' \
   --include='*.ts' --include='*.js' --include='*.json' \
   --include='*.md' --include='*.yml' --include='*.yaml' \
   --include='*.html' --include='*.css' --include='*.sh' \
-  --exclude='install.sh' \
   . 2>/dev/null | grep -v 'node_modules' | grep -v 'dist/' | grep -v 'out-test/' | grep -v 'coverage/' || true)
 
 if [[ -n "$remaining" ]]; then
   echo ""
-  echo "⚠ Unreplaced tokens found:" >&2
+  echo "⚠ Unreplaced tokens found — edit these files manually:" >&2
   echo "$remaining" >&2
-  echo "Edit the listed files manually, then remove install.sh." >&2
-  exit 1
 fi
 
-# ---- finalise --------------------------------------------------------------
+# ---- un-deform .github placeholders ----------------------------------------
 
-if [[ "$MODE" == "bootstrap" ]]; then
-  rm -f install.sh
+echo ""
+echo "Enabling .github files…"
+while IFS= read -r f; do mv "$f" "${f%.init}"; done \
+  < <(find .github -type f -name '*.init' 2>/dev/null)
+echo "  ✓ .github files enabled."
+
+# ---- non-pnpm lockfile cleanup ---------------------------------------------
+
+if [[ "$PROVIDER" != "pnpm" ]]; then
   echo ""
-  echo "✓ Template initialized in ./${EXTENSION_NAME}"
-  echo ""
-  echo "Next steps:"
-  echo "  cd ${EXTENSION_NAME}"
-  echo "  git init && git add . && git commit -m 'chore: init from vscode-extension-template'"
-  echo "  pnpm install"
-  echo "  code ."
-else
-  rm -- "$0"
-  echo ""
-  echo "✓ Template initialized. Run 'pnpm install' next."
+  echo "Removing pnpm-specific files for $PROVIDER project…"
+  [[ -f pnpm-lock.yaml ]]    && rm -f pnpm-lock.yaml    && echo "  ✓ Removed pnpm-lock.yaml"
+  [[ -f pnpm-workspace.yaml ]] && rm -f pnpm-workspace.yaml && echo "  ✓ Removed pnpm-workspace.yaml"
 fi
+
+# ---- install dependencies --------------------------------------------------
+
+echo ""
+echo "Installing dependencies with $PROVIDER…"
+"$PROVIDER" install
+echo "  ✓ Dependencies installed."
+
+# ---- done ------------------------------------------------------------------
+
+echo ""
+echo "✓ Project ready in ./${PROJECT_ID}"
+echo ""
+echo "Next steps:"
+echo "  cd ${PROJECT_ID}"
+echo "  git init && git add . && git commit -m 'chore: init from vscode-extension-template'"
+echo "  code ."
+echo "  # Press F5 in VS Code to launch the Extension Development Host"
+echo ""
+echo "  Happy coding!"
