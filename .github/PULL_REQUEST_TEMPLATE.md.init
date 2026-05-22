@@ -27,5 +27,4 @@
 ## Checklist
 
 - [ ] `CHANGELOG.md` updated under `[Unreleased]`
-- [ ] `CLAUDE.md` updated if architecture/conventions changed
 - [ ] No secrets, build artifacts, or compiled JS committed
