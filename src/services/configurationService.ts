@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 
 import type { IConfigurationService } from '../di/interfaces/IConfigurationService';
 import type { ILogger } from '../di/interfaces/ILogger';
+import type { ExtensionConfiguration } from '../types/config';
 import { Logger } from '../utils/logger';
 
 // The configuration section key — matches package.json "contributes.configuration" title key.
@@ -53,6 +54,35 @@ export class ConfigurationService implements IConfigurationService {
 
   public isKeyboardNavigation(): boolean {
     return this.get<boolean>('accessibility.keyboardNavigation', true);
+  }
+
+  public getConfiguration(): ExtensionConfiguration {
+    const config = vscode.workspace.getConfiguration(CONFIG_SECTION);
+    return {
+      enabled: config.get<boolean>('enabled', true),
+      accessibility: {
+        verbosity: config.get<'minimal' | 'normal' | 'verbose'>(
+          'accessibility.verbosity',
+          'normal',
+        ),
+        screenReaderMode: config.get<boolean>('accessibility.screenReaderMode', false),
+        keyboardNavigation: config.get<boolean>('accessibility.keyboardNavigation', true),
+      },
+    };
+  }
+
+  public async updateConfiguration<T>(
+    key: string,
+    value: T,
+    target?: 'Global' | 'Workspace' | 'WorkspaceFolder',
+  ): Promise<void> {
+    const configTarget =
+      target === 'Workspace'
+        ? vscode.ConfigurationTarget.Workspace
+        : target === 'WorkspaceFolder'
+          ? vscode.ConfigurationTarget.WorkspaceFolder
+          : vscode.ConfigurationTarget.Global;
+    await vscode.workspace.getConfiguration(CONFIG_SECTION).update(key, value, configTarget);
   }
 
   public onConfigurationChanged(listener: () => void): vscode.Disposable {

@@ -29,3 +29,45 @@ export class ConfigValidator {
     return result;
   }
 }
+
+export interface ValidationResult {
+  valid: boolean;
+  errors: ValidationError[];
+}
+
+export interface ValidationError {
+  key: string;
+  message: string;
+  value: unknown;
+  suggestion?: string;
+}
+
+export function validateConfigValue<T extends string>(
+  key: string,
+  value: T,
+  validValues: readonly T[],
+): ValidationError | undefined {
+  if (validValues.includes(value)) {
+    return undefined;
+  }
+  return {
+    key,
+    message: `Invalid value for ${key}`,
+    value,
+    suggestion: `Must be one of: ${validValues.join(', ')}`,
+  };
+}
+
+export function formatValidationErrors(errors: ValidationError[]): string {
+  if (errors.length === 0) {
+    return '';
+  }
+  const lines = ['Configuration validation errors:', ''];
+  for (const error of errors) {
+    lines.push(`  - ${error.key}: ${error.message}`);
+    if (error.suggestion) {
+      lines.push(`    Suggestion: ${error.suggestion}`);
+    }
+  }
+  return lines.join('\n');
+}
