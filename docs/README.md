@@ -1,26 +1,25 @@
 # docs/
 
-This directory contains assets and supplementary documentation for the extension.
+Static assets and supplementary documentation for the extension.
 
 ## docs/images/
 
-Store screenshots, GIFs, and banner images here. These are referenced from:
+Store screenshots, GIFs, and banner images referenced from:
 
-- `README.md` — marketplace listing and repository landing page
-- `package.json` `marketplace.screenshots` — VS Code marketplace gallery
-
-Example reference in `README.md`:
-
-```markdown
-![My Feature](docs/images/my-feature.gif)
-```
+- `README.md` — repository landing page and VS Code Marketplace listing
+- `package.json` `marketplace.screenshots` — Marketplace gallery
 
 Recommended naming: `docs/images/<feature-name>.<gif|png>`.
 
-## site/
+## Optional: GitHub Pages (legacy)
 
-Full prose documentation lives in the `site/` directory as a Jekyll GitHub Pages site. Run it locally with:
+`docs/` can serve as a GitHub Pages source with no workflow required.
 
-```bash
-pnpm run site:serve
-```
+**Setup:** Repository **Settings → Pages → Build and deployment → Source: Deploy from a
+branch → Branch: `main` / `docs/`.**
+
+Place an `index.md` (or `index.html`) at `docs/index.md` and GitHub Pages will publish it
+at `https://<username>.github.io/<repo>`. This is the "Deploy from branch" (legacy) Pages
+method — no Actions workflow, no Jekyll, no Ruby dependency.
+
+Leave the directory with only `docs/images/` if you don't need a docs site.

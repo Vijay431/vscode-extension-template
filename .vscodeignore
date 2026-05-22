@@ -21,7 +21,6 @@ pnpm-lock.yaml
 .husky/
 .gitignore
 .editorconfig
-.coderabbit.yaml
 .nvmrc
 .prettier*
 eslint*
@@ -48,7 +47,6 @@ tsconfig.test.json
 .mcp.json
 .vscode-test.mjs
 .lintstagedrc
-.devcontainer/
 .cursorignore
 .code-review-graph
 .worktrees/
@@ -61,13 +59,11 @@ tsconfig.test.json
 # Documentation & Content
 # ============================================
 docs/
-site/
 
 # ============================================
 # Project & Documentation Files
 # ============================================
-CLAUDE.md
-AGENTS.md
+LLM.txt
 CONTRIBUTING.md
 SECURITY.md
 CODE_OF_CONDUCT.md

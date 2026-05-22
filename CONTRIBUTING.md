@@ -25,8 +25,6 @@ By participating in this project, you are expected to uphold our [Code of Conduc
 - [PNPM](https://pnpm.io/) (install with `npm install -g pnpm`)
 - [Visual Studio Code](https://code.visualstudio.com/) (for development and testing)
 - [Git](https://git-scm.com/)
-- [Ruby](https://www.ruby-lang.org/en/downloads/) >= 3.1 — required for local GitHub Pages preview (`pnpm run site:serve`)
-- [Bundler](https://bundler.io/) — Ruby gem manager, install with `gem install bundler`, then run `pnpm run system:verify` to set up Husky and site dependencies
 
 ### Types of Contributions
 
@@ -77,11 +75,12 @@ pnpm run lint
 ### 5. Other Useful Commands
 
 ```bash
-pnpm run watch      # Watch mode for active development
-pnpm run package    # Production build + VSIX packaging
-pnpm run format     # Format code with Prettier
-pnpm run test:unit       # Run unit tests (Vitest)
+pnpm run watch          # Watch mode for active development
+pnpm run package        # Production build + VSIX packaging
+pnpm run format         # Format code with Prettier
+pnpm run test:unit      # Run unit tests (Vitest)
 pnpm run test:integration  # Run integration tests (requires display/xvfb on Linux)
+pnpm run system:verify  # Verify Husky hooks are installed
 ```
 
 ## Testing
@@ -206,7 +205,7 @@ Large commits that pre-date these limits (legacy migrations, bulk renames) are e
 
 ### CI Workflows
 
-The template stores workflows as `.github/workflows/*.yml.init` placeholders so they do not run before bootstrap. `install.sh` renames them to normal `.yml` files during initialization. After initialization, the repository uses a single consolidated GitHub Actions workflow at `.github/workflows/ci.yml`.
+Workflows and all other `.github/` files ship as `*.init` placeholders in the template so they do not trigger any automation before bootstrap. The `install.sh` bootstrap script automatically restores them (renames `*.init` → live filenames) as part of the bootstrap flow — no manual step needed.
 
 **On every push and PR:**
 
