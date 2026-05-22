@@ -98,7 +98,6 @@
   },
   "main": "./dist/extension.js",
   "scripts": {
-    "init": "bash install.sh",
     "vscode:prepublish": "tsx esbuild.config.ts --production",
     "build": "tsx esbuild.config.ts",
     "watch": "tsx esbuild.config.ts --watch",
@@ -115,9 +114,7 @@
     "lint:fix": "eslint src --fix",
     "lint-staged": "lint-staged",
     "format": "prettier --write .",
-    "site:serve": "cd site && bundle exec jekyll serve --baseurl ''",
-    "site:live": "cd site && bundle exec jekyll serve --baseurl '' --livereload",
-    "system:verify": "concurrently \"husky\" \"cd site && bundle config set --local path vendor/bundle && bundle install\""
+    "system:verify": "husky"
   },
   "prettier": {
     "printWidth": 100,
