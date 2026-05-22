@@ -9,6 +9,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `src/utils/configValidator.ts`: generic `ValidationResult`/`ValidationError` interfaces, `validateConfigValue<T>()` helper, and `formatValidationErrors()` — ported from `additional-contexts-menu`, feature-neutral and reusable by any command that validates string-enum config values
+- `src/services/configurationService.ts` + `IConfigurationService`: `getConfiguration()` returns full typed `ExtensionConfiguration`; `updateConfiguration<T>(key, value, target?)` writes a setting to Global/Workspace/WorkspaceFolder scope
+- `src/utils/logger.ts` + `ILogger`: `LogCategory` enum (`GENERAL`, `PERFORMANCE`, `OPERATION`, `SECURITY`) now threaded through `log()` and exposed as optional 3rd param on `debug/info/warn/error`; non-GENERAL categories emit a `[CATEGORY]` prefix in text format and a `category` field in JSON format; level resolution uses an explicit `switch` instead of enum reverse-lookup
+- `test/unit/configurationService.test.ts`: unit tests for `getConfiguration()` defaults/values and `updateConfiguration()` target mapping
+- `LLM.txt`: single-file architecture guide for building on this template with any LLM; paste alongside feature requirements to leverage existing primitives (not published in `.vsix`)
+- Per-directory `README.md` architecture scaffolds: `src/` index hub, `src/commands/`, `src/di/`, `src/di/interfaces/`, `src/managers/`, `src/services/`, `src/types/`, `src/utils/`, `test/unit/`, `test/suite/` — each documents purpose, conventions, how-to-extend, and reference architecture examples
+
+### Changed
+
+- `install.sh`: now auto-restores all `.github/**/*.init` placeholders during bootstrap — no manual workflow-enable step required; workflows and all other `.github/` files become live immediately after bootstrap
+- `install.sh`: replaced 11-field dual-mode bootstrap with a lean 3-input flow (project-id, project-name, package manager); derives all other tokens (author from git config, GitHub username/URLs from author slug); supports npm/pnpm/yarn; exits with "Happy coding!"
+- Package manager constraint relaxed: default remains **pnpm**; npm and yarn are now supported via the `install.sh` provider prompt
+- All `.github/` files (workflows, templates, dependabot, CODEOWNERS, labels, etc.) are now deformed to `*.init` so the template repo itself triggers no GitHub automation
+- `docs/` is now the optional GitHub Pages source (Settings → Pages → Deploy from branch → `/docs`); no Actions workflow required
+- `package.json`: removed `site:serve`, `site:live`; `system:verify` simplified to `husky`
+- `README.md`: expanded install.sh guide with step-by-step flow, derived-tokens table, `scripts/` documentation
+
+### Removed
+
+- `init.mjs` — superseded by `install.sh` (was the old Node-based bootstrap; also the source of pre-existing lint warnings)
+- `scripts/test-install-workflows.sh` — tested workflow-enable behavior that is no longer part of the `install.sh` flow
+- `package.json` `init` script — local init mode dropped; use the curl one-liner bootstrap
+- `site/` — Jekyll GitHub Pages site removed; replaced by optional `docs/`-based GitHub legacy Pages
+- `.devcontainer/` — removed from template
+- `.coderabbit.yaml` — removed from template
+- `.github/copilot-instructions.md` — removed from template
+- `AGENTS.md` — removed; generic AI guidance now lives in `LLM.txt`
+- `CLAUDE.md` — removed; architecture reference consolidated into `LLM.txt` and per-directory `README.md` files
+- `.github/workflows/deploy-pages.yml.init` — Jekyll Pages CI removed
+- Sample unit and integration tests — template now ships clean test harness + `README.md` scaffolds; add tests for your own features
+
 - `install.sh` — dual-mode interactive bootstrap: curl-pipe mode (`bash <(curl -fsSL …/install.sh)`) clones template into `./<extension-name>/`, removes template git history, replaces all 11 `{{TOKEN}}` placeholders, and self-deletes; local mode (`pnpm run init`) does the same in-place after a manual clone
 - `pnpm-workspace.yaml` with `allowBuilds` entries for esbuild/vsce-sign/keytar and `overrides` for fast-uri, serialize-javascript, postcss, brace-expansion, diff, tmp
 - `scripts/commit-size-excludes.txt` centralising lockfile exclusion patterns shared between `check-commit-size.sh` and the CI `pr-commit-size.yml` workflow
