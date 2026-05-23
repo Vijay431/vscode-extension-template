@@ -46,17 +46,13 @@ const DEFAULT_CONFIG: ExtensionConfiguration = { ... };
 
 ## Reference architecture
 
-A mature extension's `config.ts` grows feature-specific sub-configs:
+As `contributes.configuration` grows, add a feature-specific sub-config to `ExtensionConfiguration`:
 
 ```typescript
 interface ExtensionConfiguration {
   enabled: boolean;
-  autoDetectProjects: boolean;
-  supportedExtensions: string[];
-  copyCode: { insertionPoint: 'smart' | 'end' | 'beginning'; preserveComments: boolean };
-  saveAll: { showNotification: boolean; skipReadOnly: boolean };
-  terminal: { type: 'integrated' | 'external' | 'system-default'; openBehavior: string };
   accessibility: AccessibilityConfig;
+  myFeature: { mode: 'auto' | 'manual'; maxItems: number };  // example sub-config
 }
 ```
 

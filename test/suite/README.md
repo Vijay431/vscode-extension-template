@@ -44,13 +44,11 @@ No tests yet — this is a clean scaffold. Add your first test file here.
 
 ## Reference architecture
 
-A mature extension's integration suite tests each feature end-to-end:
+An integration suite covers each feature end-to-end:
 
 - Extension activation + context key set (`{{EXTENSION_ID}}.enabled`).
 - Command registration verified.
-- File-level commands: execute on a fixture file; assert output file content.
-- Terminal commands: verify terminal created with expected cwd.
-- Generator commands: assert generated code shape.
+- Each command executed against a fixture; assert the resulting editor/workspace state.
 
 ## See also
 

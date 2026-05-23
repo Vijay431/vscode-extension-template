@@ -42,7 +42,7 @@ cache.set('key', value);
 const v = cache.get('key');                    // MyData | undefined
 const result = await cache.memoize('key', () => expensiveOp());
 ```
-Used by `fileDiscoveryService` to cache workspace scans.
+Use it to cache expensive lookups (e.g. workspace scans) behind a TTL.
 
 ### validateConfigValue<T>
 ```typescript

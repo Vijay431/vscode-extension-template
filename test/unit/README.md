@@ -41,10 +41,9 @@ function makeLogger(): ILogger {
 
 ## Reference architecture
 
-A mature extension unit-tests every util and service independently:
-`codeAnalysisService`, `fileDiscoveryService`, `projectDetectionService`,
-`fileNamingConventionService`, `enumGeneratorService`, `envFileGeneratorService`,
-`cronJobTimerGeneratorService` — 14+ test files.
+Unit-test every util and service independently — one `*.test.ts` per unit
+(e.g. `exampleService.test.ts`, `cache.test.ts`), mocking `vscode` via
+`test/__mocks__/vscode.ts`.
 
 ## See also
 

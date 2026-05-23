@@ -48,10 +48,14 @@ const child = container.createChild();                    // inherits parent reg
 
 ## Reference architecture
 
-A mature extension registers services such as:
-`Logger`, `ConfigurationService`, `AccessibilityService`, `ExtensionManager`, `CommandRegistry`,
-`CodeAnalysisService`, `FileDiscoveryService`, `ProjectDetectionService`, `TerminalService`,
-`FileSaveService`, `FileNamingConventionService`, and generator services (enum, env, cron).
+As an extension grows, `initializeContainer()` registers one singleton per service
+alongside the built-ins (`Logger`, `ConfigurationService`, `AccessibilityService`). For example:
+
+```typescript
+container.registerSingleton(TYPES.ExampleService, () =>
+  ExampleService.create(container.get<ILogger>(TYPES.Logger))
+);
+```
 
 The `TYPES` map grows one entry per service. All are registered in `initializeContainer()`.
 

@@ -42,12 +42,11 @@ this.registry.registerCommand({
 
 ## Reference architecture
 
-A mature extension adds:
-
-- **`ContextMenuManager`** — wires 20+ commands to their services, manages context-key
-  lifecycle (`vscode.commands.executeCommand('setContext', ...)`) so menu items appear/hide
-  based on cursor position (e.g. `{{EXTENSION_ID}}.isInFunction`). This is the
-  largest manager in a real extension (~1000 LOC).
+Beyond `ExtensionManager` and `CommandsManager`, an extension may add managers that
+coordinate a group of commands or UI state. For example, an `ExampleMenuManager` could wire a
+set of related commands and manage context-key lifecycle
+(`vscode.commands.executeCommand('setContext', '{{EXTENSION_ID}}.isReady', value)`) so menu
+items appear/hide based on editor state. Keep wiring here; keep business logic in services.
 
 ## See also
 
