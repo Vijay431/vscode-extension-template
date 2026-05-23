@@ -262,7 +262,112 @@ structuring your features — do not copy source code.
 
 ---
 
-## 9. Changelog conventions
+## 9. SEO & discoverability
+
+### 9a. VS Code Marketplace & Open VSX
+
+The Marketplace and Open VSX both rank results by metadata quality. Edit these fields
+in `package.json` after bootstrap:
+
+| Field | Guidance |
+|---|---|
+| `displayName` | Keyword-rich human title. Appears in search result titles. |
+| `description` | First ~140 chars become the search snippet — lead with primary keywords. |
+| `keywords` | Array of up to ~30 terms. First 5 surface as clickable Marketplace tags. Default `["vscode-extension"]` is a placeholder; replace with feature-specific terms. |
+| `categories` | Replace `"Other"` with a specific value: `Linters`, `Formatters`, `Snippets`, `Programming Languages`, `Debuggers`, `Themes`, `Other`. |
+| `icon` | 128×128 PNG at `logo.png` (already wired). Use a distinct, recognisable mark. |
+| `galleryBanner` | Already present. Match `color` to brand palette; `theme` = `"dark"` or `"light"`. |
+
+Optional listing fields — add to `package.json` root when ready:
+
+```jsonc
+"qna": "marketplace",             // or a URL to your own Q&A page
+"sponsor": { "url": "{{REPO_URL}}/sponsors" },
+"badges": [
+  { "url": "…badge.svg", "href": "…", "description": "Build status" }
+],
+"marketplace": {
+  "screenshots": [
+    { "path": "docs/images/feature.gif", "description": "Feature in action" }
+  ]
+}
+```
+
+**README = Marketplace body.** The rendered Marketplace listing is the repo README.
+- Keep `# {{DISPLAY_NAME}}` as H1.
+- Add at least one screenshot or GIF from `docs/images/` near the top.
+- Front-load keywords in the first two paragraphs.
+
+Open VSX reuses the same `package.json` metadata — no extra work needed when publishing
+via `pnpm publish:openvsx`.
+
+---
+
+### 9b. GitHub Pages docs-site (`{{SITE_URL}}`)
+
+Applies only if you enable Pages from `docs/` (see `docs/README.md`). Add `docs/index.html`:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{DISPLAY_NAME}} — VS Code Extension</title>
+  <meta name="description" content="{{DESCRIPTION}}">
+
+  <!-- Open Graph / Twitter Card -->
+  <meta property="og:title" content="{{DISPLAY_NAME}}">
+  <meta property="og:description" content="{{DESCRIPTION}}">
+  <meta property="og:image" content="{{SITE_URL}}/images/banner.png">
+  <meta property="og:url" content="{{SITE_URL}}">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <!-- Canonical -->
+  <link rel="canonical" href="{{SITE_URL}}">
+</head>
+<body><!-- content --></body>
+</html>
+```
+
+Also add:
+
+**`docs/sitemap.xml`**
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>{{SITE_URL}}/</loc><changefreq>monthly</changefreq></url>
+</urlset>
+```
+
+**`docs/robots.txt`**
+```
+User-agent: *
+Allow: /
+Sitemap: {{SITE_URL}}/sitemap.xml
+```
+
+**JSON-LD structured data** — embed in `docs/index.html` `<head>`:
+```html
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "{{DISPLAY_NAME}}",
+  "description": "{{DESCRIPTION}}",
+  "url": "{{SITE_URL}}",
+  "codeRepository": "{{REPO_URL}}",
+  "author": { "@type": "Person", "name": "{{AUTHOR_NAME}}" },
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "VS Code"
+}
+</script>
+```
+
+Cross-link for link equity: README → `{{SITE_URL}}`, site → README, site → Marketplace listing.
+
+---
+
+## 10. Changelog conventions
 
 `CHANGELOG.md` follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) + SemVer.
 Maintain it as you work:

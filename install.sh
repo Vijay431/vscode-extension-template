@@ -69,6 +69,12 @@ else
   sedi() { sed -i '' "$@"; }
 fi
 
+# Escape a string for safe use on the replacement (RHS) side of a sed
+# s|…|…| command: backslash, the '|' delimiter, and '&' (whole-match ref).
+sed_rhs_escape() {
+  printf '%s' "$1" | sed -e 's/[\\&|]/\\&/g'
+}
+
 setup_provider() {
   local provider="$1"
 
@@ -232,17 +238,17 @@ for f in "${FILES[@]}"; do
   [[ -f "$f" ]] || continue
 
   sedi \
-    -e "s|{{EXTENSION_NAME}}|${EXTENSION_NAME}|g" \
-    -e "s|{{DISPLAY_NAME}}|${DISPLAY_NAME}|g" \
-    -e "s|{{EXTENSION_ID}}|${EXTENSION_ID}|g" \
-    -e "s|{{PUBLISHER}}|${PUBLISHER}|g" \
-    -e "s|{{DESCRIPTION}}|${DESCRIPTION}|g" \
-    -e "s|{{AUTHOR_NAME}}|${AUTHOR_NAME}|g" \
-    -e "s|{{AUTHOR_EMAIL}}|${AUTHOR_EMAIL}|g" \
-    -e "s|{{REPO_URL}}|${REPO_URL}|g" \
-    -e "s|{{SITE_URL}}|${SITE_URL}|g" \
-    -e "s|{{GITHUB_USERNAME}}|${GITHUB_USERNAME}|g" \
-    -e "s|{{YEAR}}|${YEAR}|g" \
+    -e "s|{{EXTENSION_NAME}}|$(sed_rhs_escape "$EXTENSION_NAME")|g" \
+    -e "s|{{DISPLAY_NAME}}|$(sed_rhs_escape "$DISPLAY_NAME")|g" \
+    -e "s|{{EXTENSION_ID}}|$(sed_rhs_escape "$EXTENSION_ID")|g" \
+    -e "s|{{PUBLISHER}}|$(sed_rhs_escape "$PUBLISHER")|g" \
+    -e "s|{{DESCRIPTION}}|$(sed_rhs_escape "$DESCRIPTION")|g" \
+    -e "s|{{AUTHOR_NAME}}|$(sed_rhs_escape "$AUTHOR_NAME")|g" \
+    -e "s|{{AUTHOR_EMAIL}}|$(sed_rhs_escape "$AUTHOR_EMAIL")|g" \
+    -e "s|{{REPO_URL}}|$(sed_rhs_escape "$REPO_URL")|g" \
+    -e "s|{{SITE_URL}}|$(sed_rhs_escape "$SITE_URL")|g" \
+    -e "s|{{GITHUB_USERNAME}}|$(sed_rhs_escape "$GITHUB_USERNAME")|g" \
+    -e "s|{{YEAR}}|$(sed_rhs_escape "$YEAR")|g" \
     "$f"
   replaced=$((replaced + 1))
 done
