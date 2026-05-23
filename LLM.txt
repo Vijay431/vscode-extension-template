@@ -9,7 +9,7 @@
 ## 1. What this repo is
 
 A production-ready TypeScript scaffold for VS Code extensions.
-Architecture mirrors `additional-contexts-menu` (a published extension).
+Architecture follows a layered DI pattern proven in production VS Code extensions.
 Stack: TypeScript strict mode · esbuild · pnpm · Vitest unit · Mocha integration · dual-marketplace CI.
 
 Bootstrap: `bash <(curl -fsSL https://raw.githubusercontent.com/Vijay431/vscode-extension-template/main/install.sh)`
@@ -240,26 +240,36 @@ Required repository secrets: `VSCE_PAT`, `OVSX_PAT`.
 
 ---
 
-## 8. Reference architecture from a mature extension
+## 8. Reference architecture (illustrative examples)
 
-The following services, commands, and patterns are seen in real extensions built on this architecture.
-Use them as inspiration for naming and structuring your own features — do not copy source code.
+The patterns below show how features layer onto this template. Names are generic
+placeholders — replace them with your own. Use them as inspiration for naming and
+structuring your features — do not copy source code.
 
-**Services a mature extension might grow:**
-- `codeAnalysisService` — TypeScript compiler API (AST); detects function boundaries, imports.
-- `fileDiscoveryService` — workspace scanning with `Cache<T>` TTL for performance.
-- `projectDetectionService` — framework detection (React, Angular, Next.js, Express).
-- `terminalService` — integrated/external/system terminal launching with placeholder substitution.
-- `fileSaveService` — Save All with read-only file skipping.
-- `fileNamingConventionService` — convention-based rename (camelCase, PascalCase, kebab, etc.).
-- `enumGeneratorService`, `envFileGeneratorService`, `cronJobTimerGeneratorService` — code generators.
+**Services (one concern each, singleton, DI-injected):**
+- `exampleAnalysisService` — wraps a parser/AST or external API behind a clean interface.
+- `exampleDiscoveryService` — workspace scanning cached with `Cache<T>` (TTL).
+- `exampleDetectionService` — inspects `package.json`/files to branch behavior.
 
-**Managers a mature extension might grow:**
-- `ContextMenuManager` — wires many commands to their services; handles context-key lifecycle (`setContext`).
+**Managers:**
+- `ExampleMenuManager` — wires a group of related commands; manages context keys via `setContext`.
 
-**Commands a mature extension might grow:**
-- `CopyFunctionCommand`, `MoveFunctionCommand` — AST-based code extraction.
-- `OpenInTerminalCommand` — launch terminal at file location.
-- `SaveAllCommand` — skip read-only files.
-- `RenameFileConventionCommand` — apply naming convention to a file.
-- `GenerateEnumCommand`, `GenerateEnvFileCommand`, `GenerateCronTimerCommand` — code generation.
+**Commands (each extends `BaseCommandHandler`, delegates to a service):**
+- `ExampleEditorCommand` — acts on the active editor / selection.
+- `ExampleGenerateCommand` — produces a file or code from input.
+
+---
+
+## 9. Changelog conventions
+
+`CHANGELOG.md` follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) + SemVer.
+Maintain it as you work:
+
+- Every user-facing change adds a bullet under `## [Unreleased]` in the SAME PR.
+- Group bullets under one of: Added, Changed, Deprecated, Removed, Fixed, Security.
+- Write for humans — describe impact, not the diff. Present tense.
+- On release: rename `## [Unreleased]` → `## [x.y.z] - YYYY-MM-DD`, add a fresh empty
+  `## [Unreleased]` above it, and add a compare link at the bottom.
+- Version bump (SemVer): breaking → MAJOR, feature → MINOR, fix → PATCH.
+- Map from Conventional Commits: `feat:` → Added/Changed, `fix:` → Fixed; silent chores
+  (no user-visible effect) need no entry.
