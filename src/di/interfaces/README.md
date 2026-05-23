@@ -45,11 +45,9 @@ Consumers depend on the interface, never the concrete class.
 
 ## Reference architecture
 
-A mature extension has one interface per service:
-`ILogger`, `IConfigurationService`, `IAccessibilityService`,
-`ICodeAnalysisService`, `IFileDiscoveryService`, `IProjectDetectionService`,
-`ITerminalService`, `IFileSaveService`, `IFileNamingConventionService`,
-`IEnumGeneratorService`, `IEnvFileGeneratorService`, `ICronJobTimerGeneratorService`.
+As services are added, each gets one matching interface alongside the built-ins
+(`ILogger`, `IConfigurationService`, `IAccessibilityService`) — e.g. `IExampleService`,
+`IFooService`. Consumers depend on the interface, never the concrete class.
 
 ## See also
 

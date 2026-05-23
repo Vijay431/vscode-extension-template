@@ -54,22 +54,13 @@ registered in the DI container and injected into command handlers via their cons
 
 ## Reference architecture
 
-A mature extension built on this template grows services such as:
+As an extension grows, it adds services such as (generic examples — replace with your own):
 
-- **`codeAnalysisService`** — TypeScript compiler API; parses AST to detect function boundaries,
-  imports, and declaration kinds. Powers context-key detection (`isInFunction`).
-- **`fileDiscoveryService`** — scans the workspace for project files using `Cache<T>` for TTL-based
-  caching; avoids repeated filesystem traversals.
-- **`projectDetectionService`** — detects JS frameworks (React, Angular, Next.js, Express)
-  from `package.json`; used for context-aware code generation.
-- **`terminalService`** — launches integrated, external, or system-default terminals;
-  substitutes path placeholders.
-- **`fileSaveService`** — saves all open editors, skipping read-only files.
-- **`fileNamingConventionService`** (~700 LOC) — renames files to camelCase, PascalCase,
-  kebab-case, snake_case, or dot.case conventions.
-- **`enumGeneratorService`** — converts TypeScript union types to `enum` declarations.
-- **`envFileGeneratorService`** — generates `.env` files from code identifiers.
-- **`cronJobTimerGeneratorService`** — builds cron expression strings interactively.
+- **`exampleAnalysisService`** — wraps a parser/AST or external API behind a clean interface.
+- **`exampleDiscoveryService`** — scans the workspace using `Cache<T>` for TTL-based caching;
+  avoids repeated filesystem traversals.
+- **`exampleDetectionService`** — inspects `package.json`/files to branch behavior.
+- **`exampleGeneratorService`** — produces files or code from user input.
 
 Each is a singleton, injected via DI, tested independently.
 

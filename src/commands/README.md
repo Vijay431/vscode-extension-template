@@ -57,17 +57,14 @@ this.logInfo/logDebug/logWarn/logError('message', data?)
 
 ## Reference architecture
 
-A mature extension built on this template grows command handlers such as:
+As features are added, each command is a `BaseCommandHandler` subclass that delegates to a
+service — for example:
 
-- `CopyFunctionCommand` — AST-based function extraction to clipboard
-- `MoveFunctionCommand` / `CopyFunctionToFileCommand` — file-to-file code moves
-- `OpenInTerminalCommand` — launch integrated/external terminal at file location
-- `SaveAllCommand` — save all open files, skipping read-only
-- `RenameFileConventionCommand` — apply naming convention (camelCase, kebab, PascalCase)
-- `GenerateEnumCommand` — convert union type to TypeScript enum
-- `GenerateEnvFileCommand`, `GenerateCronTimerCommand` — code generation helpers
+- `ExampleCommand` → `IExampleService`
+- `FooCommand` → `IFooService`
 
-Each delegates its logic to a dedicated service in `src/services/`.
+Group related commands by feature and register them all in `CommandsManager`.
+Each handler delegates its logic to a dedicated service in `src/services/`.
 
 ## See also
 
