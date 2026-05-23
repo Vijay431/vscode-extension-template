@@ -23,7 +23,7 @@ const createConfig = (isProduction = false): esbuild.BuildOptions => ({
   external: ['vscode', ...lazyServiceExternals],
   format: 'cjs',
   platform: 'node',
-  target: 'node20',
+  target: 'node22',
   sourcemap: isProduction ? false : 'inline',
   minify: isProduction,
   treeShaking: true,
@@ -65,7 +65,7 @@ async function buildLazyServices(isProduction: boolean): Promise<void> {
       external: ['vscode'],
       format: 'cjs',
       platform: 'node',
-      target: 'node20',
+      target: 'node22',
       sourcemap: false,
       minify: isProduction,
       treeShaking: true,
@@ -104,15 +104,51 @@ async function build(production = false): Promise<void> {
 
       const stats = readFileSync('./dist/extension.js');
       const sizeKB = (stats.length / 1024).toFixed(2);
+      // Size targets apply to production (minified) builds only.
+      // Dev builds include inline sourcemaps and are naturally much larger.
       const coreTargetKB = 100;
+      const lazyTargetKB = 50;
 
       console.log('✅ Build completed successfully!');
       console.log(`📦 Main bundle: ${sizeKB} KB`);
 
-      if (production && parseFloat(sizeKB) > coreTargetKB) {
-        console.log(
-          `⚠️  Main bundle exceeds ${coreTargetKB}KB target by ${(parseFloat(sizeKB) - coreTargetKB).toFixed(2)}KB`,
-        );
+      // Calculate lazy services total
+      let lazyTotal = 0;
+      for (const service of lazyServices) {
+        const serviceName = service.split('/').pop()?.replace('.ts', '') || 'service';
+        const lazyFile = `./dist/lazy/${serviceName}.js`;
+        if (existsSync(lazyFile)) {
+          const lazyStats = readFileSync(lazyFile);
+          const lazySize = lazyStats.length / 1024;
+          lazyTotal += lazySize;
+          console.log(`  └─ ${serviceName}.js: ${lazySize.toFixed(2)} KB`);
+        }
+      }
+      if (lazyServices.length > 0) {
+        console.log(`📦 Lazy services total: ${lazyTotal.toFixed(2)} KB`);
+        console.log(`📦 Total size: ${(parseFloat(sizeKB) + lazyTotal).toFixed(2)} KB`);
+      }
+
+      // Only enforce size targets on production builds
+      if (production) {
+        const totalSize = parseFloat(sizeKB) + lazyTotal;
+        const totalTarget = coreTargetKB + lazyTargetKB;
+
+        if (parseFloat(sizeKB) > coreTargetKB) {
+          console.log(
+            `⚠️  Main bundle exceeds ${coreTargetKB}KB target by ${(parseFloat(sizeKB) - coreTargetKB).toFixed(2)}KB`,
+          );
+        } else {
+          console.log(
+            `✨ Main bundle is ${(coreTargetKB - parseFloat(sizeKB)).toFixed(2)}KB under ${coreTargetKB}KB target!`,
+          );
+        }
+
+        if (lazyServices.length > 0 && totalSize > totalTarget) {
+          console.log(
+            `⚠️  Total bundle exceeds ${totalTarget}KB target by ${(totalSize - totalTarget).toFixed(2)}KB`,
+          );
+        }
       }
 
       const inputs = Object.keys(result.metafile.inputs).length;

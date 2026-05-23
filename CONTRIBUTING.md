@@ -21,12 +21,10 @@ By participating in this project, you are expected to uphold our [Code of Conduc
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) (version 20+ required, 20, 22, and 24 supported)
+- [Node.js](https://nodejs.org/) (version 22+ required, 22, 24, and 26 supported)
 - [PNPM](https://pnpm.io/) (install with `npm install -g pnpm`)
 - [Visual Studio Code](https://code.visualstudio.com/) (for development and testing)
 - [Git](https://git-scm.com/)
-- [Ruby](https://www.ruby-lang.org/en/downloads/) >= 3.1 — required for local GitHub Pages preview (`pnpm run site:serve`)
-- [Bundler](https://bundler.io/) — Ruby gem manager, install with `gem install bundler`, then run `pnpm run system:verify` to set up Husky and site dependencies
 
 ### Types of Contributions
 
@@ -77,11 +75,12 @@ pnpm run lint
 ### 5. Other Useful Commands
 
 ```bash
-pnpm run watch      # Watch mode for active development
-pnpm run package    # Production build + VSIX packaging
-pnpm run format     # Format code with Prettier
-pnpm run test:unit       # Run unit tests (Vitest)
+pnpm run watch          # Watch mode for active development
+pnpm run package        # Production build + VSIX packaging
+pnpm run format         # Format code with Prettier
+pnpm run test:unit      # Run unit tests (Vitest)
 pnpm run test:integration  # Run integration tests (requires display/xvfb on Linux)
+pnpm run system:verify  # Verify Husky hooks are installed
 ```
 
 ## Testing
@@ -91,11 +90,12 @@ The project has two test layers:
 | Layer       | Command                     | Framework                       | What's covered                                                     |
 | ----------- | --------------------------- | ------------------------------- | ------------------------------------------------------------------ |
 | Unit        | `pnpm run test:unit`        | Vitest                          | Infrastructure utilities and services with mocked VS Code API      |
-| Integration | `pnpm run test:integration` | Mocha + `@vscode/test-electron` | All 11 user-facing features, end-to-end in a real VS Code instance |
+| Unit (cov)  | `pnpm run test:unit:coverage` | Vitest + v8                  | Same as above; outputs `coverage/lcov.info` for Codecov            |
+| Integration | `pnpm run test:integration` | Mocha + `@vscode/test-electron` | Feature-level tests, end-to-end in a real VS Code instance        |
 
-**Unit tests** cover: `Cache`, `pathValidator`, `ConfigValidator`, `accessibilityHelper`, `CodeAnalysisService`, `ProjectDetectionService`, `FileDiscoveryService`.
+**Unit tests** cover: `Cache`, `pathValidator`, `ConfigValidator`, `accessibilityHelper`, and services under `src/services/`.
 
-**Integration tests** cover: Copy Function, Copy/Move Function to File, Copy/Move Selection to File, Save All, Open in Terminal, Rename File to Convention, Generate Enum, Generate Cron, Generate .env.
+**Integration tests** cover: extension activation, command registration, and end-to-end command execution.
 
 On Linux, integration tests require a display. Use `xvfb-run -a pnpm run test:integration` in headless environments.
 
@@ -173,8 +173,8 @@ Breaking changes: append `!` after the type — `feat!: remove deprecated API`
 
 | Limit                        | Value   | Rationale                            |
 | ---------------------------- | ------- | ------------------------------------ |
-| Max files per commit         | **15**  | Keeps commits focused and reviewable |
-| Max lines changed per commit | **600** | Prevents large, hard-to-review diffs |
+| Max files per commit         | **10**  | Keeps commits focused and reviewable |
+| Max lines changed per commit | **400** | Prevents large, hard-to-review diffs |
 
 If your change exceeds these limits, split it into multiple focused commits:
 
@@ -187,11 +187,11 @@ git add src/commands/openInTerminal.ts
 git commit -m "feat(terminal): add openInTerminal command handler"
 ```
 
-> **Note:** `--no-verify` bypasses local hooks but the CI `commit-size` job will still block oversized PRs.
+> **Note:** `--no-verify` bypasses local hooks but the CI `commit-size` job will still block oversized PRs. Add the `size/override` label to your PR to bypass the CI check for large sweeping refactors (grandfathered migrations, generated-file churn, etc.).
 
 #### Grandfathered History
 
-Commits before `v2.0.0` predate this enforcement and are not subject to these rules. Enforcement applies to all commits from the next release onwards.
+Large commits that pre-date these limits (legacy migrations, bulk renames) are excluded from retroactive enforcement. Only new commits are checked.
 
 ### Pull Request Process
 
@@ -205,7 +205,7 @@ Commits before `v2.0.0` predate this enforcement and are not subject to these ru
 
 ### CI Workflows
 
-The repository uses a single consolidated GitHub Actions workflow at `.github/workflows/ci.yml`.
+Workflows and most other `.github/` files ship as `*.init` placeholders in the template so they do not trigger any automation before bootstrap. Exception: `dependabot.yml` ships **live** so the template's own dependencies stay current (open-source credibility). The `install.sh` bootstrap script automatically restores the remaining `.init` files (renames `*.init` → live filenames) — no manual step needed.
 
 **On every push and PR:**
 
@@ -213,7 +213,7 @@ The repository uses a single consolidated GitHub Actions workflow at `.github/wo
 - `test-unit` — runs `pnpm run test:unit` (Vitest, ubuntu only, after `lint`)
 - `test-integration` — runs `pnpm run test:integration` (Mocha + VS Code, ubuntu/windows/macOS, after `lint`, parallel with `test-unit`)
 - `build` — builds on Ubuntu, Windows, macOS × Node 20/22/24 × VS Code stable/insiders (after both test jobs pass)
-- `audit` — runs `pnpm audit --audit-level=high`
+- `audit` — runs `pnpm audit --audit-level=moderate`
 - `dependency-review` — reviews dependency changes on PRs
 
 **On `v*` tag push (release pipeline):**
@@ -234,14 +234,20 @@ The repository uses a single consolidated GitHub Actions workflow at `.github/wo
 src/
 ├── extension.ts              # Entry point
 ├── managers/
-│   ├── extensionManager.ts   # Lifecycle management
-│   └── contextMenuManager.ts # Context menu control
+│   ├── ExtensionManager.ts   # Lifecycle management
+│   ├── CommandsManager.ts    # Command registration
+│   └── CommandRegistry.ts    # Generic command registry
+├── commands/
+│   ├── BaseCommandHandler.ts # Abstract base for commands
+│   ├── ICommandHandler.ts    # Command handler interface
+│   └── HelloWorldCommand.ts  # Starter command
 ├── services/
-│   ├── projectDetectionService.ts # Project detection
 │   ├── configurationService.ts    # Settings integration
-│   ├── fileDiscoveryService.ts    # File operations
-│   ├── fileSaveService.ts         # Save operations
-│   └── codeAnalysisService.ts     # AST analysis
+│   └── accessibilityService.ts    # Screen reader / ARIA helpers
+├── di/
+│   ├── container.ts          # DI container (singleton pattern)
+│   ├── types.ts              # DI token symbols
+│   └── interfaces/           # ILogger, IConfigurationService, IAccessibilityService
 ├── utils/
 │   └── logger.ts             # Logging utilities
 └── types/
@@ -324,7 +330,7 @@ Update `CHANGELOG.md` for:
 
 - **GitHub Issues** - Report bugs or request features
 - **GitHub Discussions** - Ask questions and share ideas
-- **Email** - Contact maintainer at <vijayanand431@gmail.com>
+- **Email** - Contact maintainer at <{{AUTHOR_EMAIL}}>
 
 ### Recognition
 
@@ -363,9 +369,9 @@ Helpful extensions for development:
 
 If you have questions about contributing:
 
-1. Check existing [issues](https://github.com/Vijay431/{{EXTENSION_NAME}}/issues)
-2. Search [discussions](https://github.com/Vijay431/{{EXTENSION_NAME}}/discussions)
+1. Check existing [issues]({{REPO_URL}}/issues)
+2. Search [discussions]({{REPO_URL}}/discussions)
 3. Create a new issue with the "question" label
-4. Email the maintainer: <vijayanand431@gmail.com>
+4. Email the maintainer: <{{AUTHOR_EMAIL}}>
 
 Thank you for contributing to {{DISPLAY_NAME}}! 🚀

@@ -1,0 +1,277 @@
+# LLM Architecture Guide — VS Code Extension Template
+
+> Paste this file plus your feature requirements into any LLM.
+> The LLM will extend this template using its existing architecture
+> rather than starting from scratch. See `README.md` for how to use this.
+
+---
+
+## 1. What this repo is
+
+A production-ready TypeScript scaffold for VS Code extensions.
+Architecture follows a layered DI pattern proven in production VS Code extensions.
+Stack: TypeScript strict mode · esbuild · pnpm · Vitest unit · Mocha integration · dual-marketplace CI.
+
+Bootstrap: `bash <(curl -fsSL https://raw.githubusercontent.com/Vijay431/vscode-extension-template/main/install.sh)`
+
+---
+
+## 2. Architecture — layered model
+
+```
+extension.ts
+  └─ initializeContainer()    ← registers all service singletons
+  └─ ExtensionManager.activate()
+       └─ CommandsManager      ← registers commands via CommandRegistry
+            └─ BaseCommandHandler subclasses   ← command logic
+                 └─ Services (ConfigurationService, AccessibilityService, …)
+                      └─ Utils (Logger, Cache, configValidator, pathValidator, …)
+```
+
+### src/ tree
+
+```
+src/
+  extension.ts                # activate/deactivate; boots DI then ExtensionManager
+  managers/
+    ExtensionManager.ts       # lifecycle root; validates config, sets context key
+    CommandsManager.ts        # registers all commands at startup
+    CommandRegistry.ts        # generic registry: register/execute/dispose commands
+  commands/
+    ICommandHandler.ts        # interface: execute(): Promise<CommandResult>
+    BaseCommandHandler.ts     # abstract base: logging, a11y, editor helpers, result helpers
+    HelloWorldCommand.ts      # starter — copy and rename for every new command
+    index.ts                  # barrel (CommandHandlerFactory type)
+  services/
+    configurationService.ts   # reads/writes VS Code settings; fires change events
+    accessibilityService.ts   # screen reader announcements, verbosity, ARIA helpers
+  di/
+    container.ts              # DIContainer: registerSingleton/get/has/createChild
+    types.ts                  # TYPES — Symbol.for() token map (one per service)
+    interfaces/               # ILogger, IConfigurationService, IAccessibilityService + barrel
+  utils/
+    logger.ts                 # Logger: LogLevel, LogFormat, LogCategory; output channel
+    cache.ts                  # Cache<T>: TTL + LRU eviction + stats + memoize()
+    configValidator.ts        # ConfigValidator.validate(); validateConfigValue<T>(); formatValidationErrors()
+    pathValidator.ts          # isSafeFilePath(): blocks traversal + dangerous extensions
+    metrics.ts                # MetricData, IMetricCollector (interfaces only — implement to collect perf data)
+    accessibilityHelper.ts    # standalone a11y helpers (labels, quick-pick, screen reader)
+    index.ts                  # barrel
+  types/
+    config.ts                 # ExtensionConfiguration, AccessibilityConfig, DEFAULT_CONFIG
+    extension.ts              # extension-level shared types
+    index.ts                  # barrel
+```
+
+### test/ tree
+
+```
+test/
+  __mocks__/vscode.ts         # minimal vscode mock for Vitest (workspace, window, EventEmitter, enums)
+  unit/                       # Vitest — fast, no live VS Code; mock via __mocks__/vscode.ts
+  suite/                      # Mocha + @vscode/test-electron — live Extension Development Host
+  fixtures/                   # static fixture files for tests
+  runTests.ts                 # @vscode/test-electron launcher
+```
+
+---
+
+## 3. Primitives already provided — REUSE, do not rebuild
+
+### DIContainer (`src/di/container.ts`)
+```typescript
+container.registerSingleton(TYPES.Token, () => MyService.create(logger));
+const svc = container.get<IMyService>(TYPES.MyService);
+const child = container.createChild(); // for test isolation
+```
+
+### TYPES (`src/di/types.ts`)
+Add a `Symbol.for('MyService')` entry for every new service before registering it.
+
+### BaseCommandHandler (`src/commands/BaseCommandHandler.ts`)
+```typescript
+class MyCommand extends BaseCommandHandler {
+  constructor(logger: ILogger, a11y: IAccessibilityService) {
+    super('MyCommand', logger, a11y);
+  }
+  async execute(): Promise<CommandResult> {
+    const editor = this.requireActiveEditor(); // throws if none
+    const text = this.getSelectedText();
+    this.announceSuccess('Done');
+    return this.success('Operation completed');
+  }
+}
+```
+Helpers: `getActiveEditor()`, `requireActiveEditor()`, `hasSelection()`, `getSelectedText()`,
+`success(msg)`, `error(msg, err?)`, `showInfo/Warning/Error()`,
+`announce/announceSuccess/announceError()`, `logInfo/logDebug/logWarn/logError()`.
+
+### CommandRegistry (`src/managers/CommandRegistry.ts`)
+```typescript
+this.registry.registerCommand({
+  id: '{{EXTENSION_ID}}.myFeature',
+  title: 'My Feature',
+  category: '{{DISPLAY_NAME}}',
+  handlerFactory: () => new MyFeatureCommand(logger, a11y),
+});
+```
+`handlerFactory` is called once at registration. Same instance reused per invocation.
+Keep handlers stateless (or reset state at start of `execute()`).
+
+### ConfigurationService (`src/services/configurationService.ts`)
+```typescript
+const svc = container.get<IConfigurationService>(TYPES.ConfigurationService);
+svc.isEnabled();                          // boolean
+svc.getAccessibilityVerbosity();          // 'minimal' | 'normal' | 'verbose'
+svc.getConfiguration();                   // ExtensionConfiguration (full object)
+await svc.updateConfiguration('enabled', false, 'Global');
+svc.onConfigurationChanged(() => { /* refresh */ });
+```
+
+### Logger (`src/utils/logger.ts`)
+```typescript
+const logger = container.get<ILogger>(TYPES.Logger);
+logger.info('message', optionalData, LogCategory.OPERATION);
+logger.error('failed', error);
+logger.setLogFormat(LogFormat.JSON);  // for structured output
+logger.setLogLevel(LogLevel.DEBUG);
+```
+Categories: `GENERAL` (default), `PERFORMANCE`, `OPERATION`, `SECURITY`.
+Non-GENERAL emits `[CATEGORY]` prefix in text format and a `category` field in JSON.
+
+### Cache<T> (`src/utils/cache.ts`)
+```typescript
+const cache = createCache<MyData>({ ttl: 60_000, maxSize: 100 });
+cache.set('key', value);
+cache.get('key');          // MyData | undefined
+cache.memoize('key', () => expensiveCompute());
+```
+
+### configValidator helpers (`src/utils/configValidator.ts`)
+```typescript
+const err = validateConfigValue('size', value, ['sm', 'md', 'lg'] as const);
+if (err) throw new Error(formatValidationErrors([err]));
+
+// Full config validation:
+const result = ConfigValidator.validate(config, logger); // returns cleaned config
+```
+
+### pathValidator (`src/utils/pathValidator.ts`)
+```typescript
+if (!isSafeFilePath(userInput)) throw new Error('Unsafe path');
+```
+Blocks `..` traversal, `node_modules`, and dangerous extensions (`.exe`, `.sh`, `.js`, etc.).
+
+### accessibilityHelper (`src/utils/accessibilityHelper.ts`)
+```typescript
+const item = getAccessibleQuickPickItem(label, description, detail);
+const hint = getKeyboardNavigationHint(isEnabled);
+```
+
+---
+
+## 4. Recipe: add a new feature end-to-end
+
+1. **Define the interface** in `src/di/interfaces/IMyService.ts`; export from `src/di/interfaces/index.ts`.
+2. **Add a DI token** in `src/di/types.ts`: `MyService: Symbol.for('MyService')`.
+3. **Implement the service** in `src/services/myService.ts`:
+   - `class MyService implements IMyService`
+   - `static create(logger: ILogger): MyService` factory method
+   - Singleton pattern; no `new MyService()` outside container.
+4. **Register** in `src/di/container.ts` `initializeContainer()`:
+   `container.registerSingleton(TYPES.MyService, () => MyService.create(logger));`
+5. **Create the command** by copying `src/commands/HelloWorldCommand.ts` → `src/commands/MyFeatureCommand.ts`:
+   - Inject `IMyService` via constructor; call service methods in `execute()`.
+6. **Register the command** in `src/managers/CommandsManager.ts` via `this.registry.registerCommand({...})`.
+7. **Add to `package.json`** under `contributes.commands` (and `contributes.menus` if needed).
+8. **Add settings** (if any) under `contributes.configuration.properties`; add getter to `ConfigurationService`; add to `IConfigurationService`.
+9. **Unit test** → `test/unit/myService.test.ts` (Vitest, mock vscode via `test/__mocks__/vscode.ts`). All descriptions: `"should "`.
+10. **Integration test** → `test/suite/myFeature.test.ts` (Mocha, live VS Code).
+11. **CHANGELOG** → `[Unreleased]` → Added.
+
+---
+
+## 5. Hard constraints (do not violate)
+
+- **Package manager:** pnpm by default; npm/yarn allowed via `install.sh` provider choice.
+- **Zero runtime deps:** nothing in `dependencies`; everything in `devDependencies`.
+- **No browser globals:** `window`, `document`, `fetch`, `localStorage` are forbidden.
+- **TypeScript strict mode:** no `any`, no unused locals, no unhandled rejections; do not weaken `tsconfig.json`.
+- **No `console.*`** in extension code except `console.error` in `src/extension.ts` activation error path (logger not yet initialized). Everywhere else: `this.logger`/`this.logInfo()`.
+- **Bundle size:** `dist/extension.js` < 100 KB (minified); lazy chunks < 50 KB each.
+- **Conventional Commits:** `feat(scope): desc`, `fix(scope): desc`, `chore(scope): desc`.
+- **Test descriptions** must start with `"should "`.
+- **Commit size:** max 10 files / 400 lines per commit (use `size/override` PR label for sweeping refactors).
+
+---
+
+## 6. Bootstrap / tokens
+
+`install.sh` fills these placeholders across all files:
+
+| Token | Maps to |
+|---|---|
+| `{{EXTENSION_NAME}}` | kebab-case package name (= project-id) |
+| `{{EXTENSION_ID}}` | camelCase config namespace |
+| `{{DISPLAY_NAME}}` | human-readable title |
+| `{{PUBLISHER}}` | VS Code Marketplace publisher |
+| `{{DESCRIPTION}}` | extension description |
+| `{{AUTHOR_NAME}}` | author full name |
+| `{{AUTHOR_EMAIL}}` | author email |
+| `{{REPO_URL}}` | GitHub repo URL |
+| `{{SITE_URL}}` | GitHub Pages URL |
+| `{{GITHUB_USERNAME}}` | GitHub username |
+| `{{YEAR}}` | copyright year |
+
+When working on a bootstrapped project, all tokens are already replaced.
+When working on the template itself, use `{{TOKEN}}` literally.
+
+---
+
+## 7. CI / GitHub Actions
+
+Most `.github/` files (workflows, issue templates, PR templates, etc.) ship as `*.init`
+placeholders in the template so they trigger no automation before bootstrap. Exception:
+`dependabot.yml` ships **live** so the template repo's own dependencies stay current.
+`install.sh` automatically restores the remaining `.init` files during bootstrap — no manual
+step required.
+
+After bootstrap the repository has live workflows for:
+CI jobs: lint → unit tests → integration tests → cross-platform build → VSIX release → dual publish.
+Required repository secrets: `VSCE_PAT`, `OVSX_PAT`.
+
+---
+
+## 8. Reference architecture (illustrative examples)
+
+The patterns below show how features layer onto this template. Names are generic
+placeholders — replace them with your own. Use them as inspiration for naming and
+structuring your features — do not copy source code.
+
+**Services (one concern each, singleton, DI-injected):**
+- `exampleAnalysisService` — wraps a parser/AST or external API behind a clean interface.
+- `exampleDiscoveryService` — workspace scanning cached with `Cache<T>` (TTL).
+- `exampleDetectionService` — inspects `package.json`/files to branch behavior.
+
+**Managers:**
+- `ExampleMenuManager` — wires a group of related commands; manages context keys via `setContext`.
+
+**Commands (each extends `BaseCommandHandler`, delegates to a service):**
+- `ExampleEditorCommand` — acts on the active editor / selection.
+- `ExampleGenerateCommand` — produces a file or code from input.
+
+---
+
+## 9. Changelog conventions
+
+`CHANGELOG.md` follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) + SemVer.
+Maintain it as you work:
+
+- Every user-facing change adds a bullet under `## [Unreleased]` in the SAME PR.
+- Group bullets under one of: Added, Changed, Deprecated, Removed, Fixed, Security.
+- Write for humans — describe impact, not the diff. Present tense.
+- On release: rename `## [Unreleased]` → `## [x.y.z] - YYYY-MM-DD`, add a fresh empty
+  `## [Unreleased]` above it, and add a compare link at the bottom.
+- Version bump (SemVer): breaking → MAJOR, feature → MINOR, fix → PATCH.
+- Map from Conventional Commits: `feat:` → Added/Changed, `fix:` → Fixed; silent chores
+  (no user-visible effect) need no entry.

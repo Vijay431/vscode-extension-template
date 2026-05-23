@@ -1,6 +1,6 @@
-import type { ILogger } from './interfaces/ILogger';
-import type { IConfigurationService } from './interfaces/IConfigurationService';
 import type { IAccessibilityService } from './interfaces/IAccessibilityService';
+import type { IConfigurationService } from './interfaces/IConfigurationService';
+import type { ILogger } from './interfaces/ILogger';
 import { TYPES } from './types';
 
 type ServiceFactory<T> = () => T;

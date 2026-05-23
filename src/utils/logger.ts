@@ -28,8 +28,7 @@ export class Logger implements ILogger {
   private logFormat: LogFormat = LogFormat.TEXT;
 
   private constructor(outputChannel?: vscode.OutputChannel) {
-    this.outputChannel =
-      outputChannel ?? vscode.window.createOutputChannel('{{DISPLAY_NAME}}');
+    this.outputChannel = outputChannel ?? vscode.window.createOutputChannel('{{DISPLAY_NAME}}');
   }
 
   public static getInstance(): Logger {
@@ -49,20 +48,20 @@ export class Logger implements ILogger {
     this.logLevel = level;
   }
 
-  public debug(message: string, data?: unknown): void {
-    this.log(LogLevel.DEBUG, message, data);
+  public debug(message: string, data?: unknown, category?: LogCategory): void {
+    this.log(LogLevel.DEBUG, message, data, category);
   }
 
-  public info(message: string, data?: unknown): void {
-    this.log(LogLevel.INFO, message, data);
+  public info(message: string, data?: unknown, category?: LogCategory): void {
+    this.log(LogLevel.INFO, message, data, category);
   }
 
-  public warn(message: string, data?: unknown): void {
-    this.log(LogLevel.WARN, message, data);
+  public warn(message: string, data?: unknown, category?: LogCategory): void {
+    this.log(LogLevel.WARN, message, data, category);
   }
 
-  public error(message: string, error?: unknown): void {
-    this.log(LogLevel.ERROR, message, error);
+  public error(message: string, error?: unknown, category?: LogCategory): void {
+    this.log(LogLevel.ERROR, message, error, category);
   }
 
   public show(): void {
@@ -73,20 +72,43 @@ export class Logger implements ILogger {
     this.outputChannel.dispose();
   }
 
-  private log(level: LogLevel, message: string, data?: unknown): void {
+  private log(
+    level: LogLevel,
+    message: string,
+    data?: unknown,
+    category: LogCategory = LogCategory.GENERAL,
+  ): void {
     if (level < this.logLevel) {
       return;
     }
 
     const timestamp = new Date().toISOString();
-    const levelName = LogLevel[level] ?? 'UNKNOWN';
+    let levelName: string;
+    switch (level) {
+      case LogLevel.DEBUG:
+        levelName = 'DEBUG';
+        break;
+      case LogLevel.INFO:
+        levelName = 'INFO';
+        break;
+      case LogLevel.WARN:
+        levelName = 'WARN';
+        break;
+      case LogLevel.ERROR:
+        levelName = 'ERROR';
+        break;
+      default:
+        levelName = 'UNKNOWN';
+        break;
+    }
 
     if (this.logFormat === LogFormat.JSON) {
-      const logEntry: Record<string, unknown> = { timestamp, level: levelName, message };
+      const logEntry: Record<string, unknown> = { timestamp, level: levelName, category, message };
       if (data) logEntry['data'] = data;
       this.outputChannel.appendLine(JSON.stringify(logEntry));
     } else {
-      const logMessage = `[${timestamp}] [${levelName}] ${message}`;
+      const categoryPrefix = category !== LogCategory.GENERAL ? `[${category.toUpperCase()}] ` : '';
+      const logMessage = `[${timestamp}] [${levelName}] ${categoryPrefix}${message}`;
       this.outputChannel.appendLine(logMessage);
       if (data) {
         this.outputChannel.appendLine(`Data: ${JSON.stringify(data, null, 2)}`);
@@ -96,10 +118,18 @@ export class Logger implements ILogger {
     if (process.env['NODE_ENV'] === 'development') {
       const consoleMessage = `[${timestamp}] [${levelName}] ${message}`;
       switch (level) {
-        case LogLevel.DEBUG: console.debug(consoleMessage, data); break;
-        case LogLevel.INFO:  console.info(consoleMessage, data);  break;
-        case LogLevel.WARN:  console.warn(consoleMessage, data);  break;
-        case LogLevel.ERROR: console.error(consoleMessage, data); break;
+        case LogLevel.DEBUG:
+          console.debug(consoleMessage, data);
+          break;
+        case LogLevel.INFO:
+          console.info(consoleMessage, data);
+          break;
+        case LogLevel.WARN:
+          console.warn(consoleMessage, data);
+          break;
+        case LogLevel.ERROR:
+          console.error(consoleMessage, data);
+          break;
       }
     }
   }

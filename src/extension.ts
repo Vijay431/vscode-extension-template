@@ -16,6 +16,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     console.error('Failed to activate {{DISPLAY_NAME}} extension:', message);
     const channel = vscode.window.createOutputChannel('{{DISPLAY_NAME}} - Activation Error');
     channel.appendLine(message);
+    // Note: Channel intentionally not disposed to keep error visible for debugging
     channel.show(true);
     vscode.window.showErrorMessage(
       `{{DISPLAY_NAME}} activation failed: ${error instanceof Error ? error.message : String(error)}`,

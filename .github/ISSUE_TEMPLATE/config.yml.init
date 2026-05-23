@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: GitHub Discussions
+    url: {{REPO_URL}}/discussions
+    about: Ask questions and discuss ideas with the community
+  - name: Documentation
+    url: {{SITE_URL}}/
+    about: Read the official documentation
+  - name: Troubleshooting Guide
+    url: {{SITE_URL}}/troubleshooting.html
+    about: Common issues and solutions
