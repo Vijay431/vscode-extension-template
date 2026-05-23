@@ -144,11 +144,6 @@
   "commitlint": {
     "extends": ["@commitlint/config-conventional"]
   },
-  "pnpm": {
-    "overrides": {
-      "serialize-javascript": "7.0.5"
-    }
-  },
   "devDependencies": {
     "@commitlint/cli": "^21.0.0",
     "@commitlint/config-conventional": "^21.0.0",
