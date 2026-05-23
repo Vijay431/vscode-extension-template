@@ -58,7 +58,7 @@ additional prompts:
 3. **Target dir check** — aborts with an error if `./<project-id>` already exists and is non-empty (safe re-run).
 4. **Clone** — `git clone --depth 1 --branch main <template-repo> <project-id>`, then removes the template's `.git/` history and `install.sh` from the clone.
 5. **Token fill** — replaces all 11 `{{TOKEN}}` placeholders across every tracked text file; warns if any remain unfilled.
-6. **Un-deform `.github/`** — renames every `.github/**/*.init` file back to its real name, activating GitHub Actions, issue templates, dependabot, and PR templates.
+6. **Un-deform `.github/`** — renames every `.github/**/*.init` file back to its real name, activating GitHub Actions, issue templates, and PR templates. (`dependabot.yml` ships live in the template and is already active.)
 7. **Lockfile cleanup** — if provider is not pnpm, removes `pnpm-lock.yaml` and `pnpm-workspace.yaml`.
 8. **Install** — runs `<provider> install`.
 9. **Greet** — prints next steps and "Happy coding!".

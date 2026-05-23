@@ -205,7 +205,7 @@ Large commits that pre-date these limits (legacy migrations, bulk renames) are e
 
 ### CI Workflows
 
-Workflows and all other `.github/` files ship as `*.init` placeholders in the template so they do not trigger any automation before bootstrap. The `install.sh` bootstrap script automatically restores them (renames `*.init` → live filenames) as part of the bootstrap flow — no manual step needed.
+Workflows and most other `.github/` files ship as `*.init` placeholders in the template so they do not trigger any automation before bootstrap. Exception: `dependabot.yml` ships **live** so the template's own dependencies stay current (open-source credibility). The `install.sh` bootstrap script automatically restores the remaining `.init` files (renames `*.init` → live filenames) — no manual step needed.
 
 **On every push and PR:**
 
@@ -213,7 +213,7 @@ Workflows and all other `.github/` files ship as `*.init` placeholders in the te
 - `test-unit` — runs `pnpm run test:unit` (Vitest, ubuntu only, after `lint`)
 - `test-integration` — runs `pnpm run test:integration` (Mocha + VS Code, ubuntu/windows/macOS, after `lint`, parallel with `test-unit`)
 - `build` — builds on Ubuntu, Windows, macOS × Node 20/22/24 × VS Code stable/insiders (after both test jobs pass)
-- `audit` — runs `pnpm audit --audit-level=high`
+- `audit` — runs `pnpm audit --audit-level=moderate`
 - `dependency-review` — reviews dependency changes on PRs
 
 **On `v*` tag push (release pipeline):**

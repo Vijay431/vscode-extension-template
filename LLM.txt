@@ -230,9 +230,11 @@ When working on the template itself, use `{{TOKEN}}` literally.
 
 ## 7. CI / GitHub Actions
 
-All `.github/` files (workflows, issue templates, dependabot, PR templates, etc.) ship as
-`*.init` placeholders in the template so they trigger no automation before bootstrap.
-`install.sh` automatically restores them during bootstrap — no manual step required.
+Most `.github/` files (workflows, issue templates, PR templates, etc.) ship as `*.init`
+placeholders in the template so they trigger no automation before bootstrap. Exception:
+`dependabot.yml` ships **live** so the template repo's own dependencies stay current.
+`install.sh` automatically restores the remaining `.init` files during bootstrap — no manual
+step required.
 
 After bootstrap the repository has live workflows for:
 CI jobs: lint → unit tests → integration tests → cross-platform build → VSIX release → dual publish.
