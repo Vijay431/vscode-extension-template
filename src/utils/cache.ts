@@ -108,7 +108,7 @@ export class Cache<T> {
         Math.min(this.config.defaultTTL, 60000),
       ); // Cleanup at most every minute
       // Do not keep the process alive just for cache cleanup
-      this.cleanupTimer.unref?.();
+      this.cleanupTimer.unref();
     }
   }
 
