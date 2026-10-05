@@ -32,4 +32,7 @@ export interface ICommandHandler {
    * @returns Promise that resolves to the command result
    */
   execute(): Promise<CommandResult>;
+
+  /** Optional cleanup, called when the command is unregistered or the registry is disposed */
+  dispose?(): void;
 }
