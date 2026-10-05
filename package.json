@@ -157,7 +157,7 @@
     "@vscode/test-electron": "2.5.2",
     "@vscode/vsce": "^3.9.1",
     "all-contributors-cli": "^6.26.1",
-    "concurrently": "^9.1.2",
+    "concurrently": "^10.0.0",
     "esbuild": "^0.28.0",
     "eslint": "^9.39.4",
     "eslint-config-prettier": "^10.1.8",
