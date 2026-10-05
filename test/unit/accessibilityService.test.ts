@@ -4,6 +4,10 @@ import * as vscode from 'vscode';
 import type { ILogger } from '../../src/di/interfaces/ILogger';
 import { AccessibilityService } from '../../src/services/accessibilityService';
 
+// Real @types/vscode has no `accessibility`; the unit-test mock does.
+const a11y = (vscode as unknown as { accessibility: { announce(msg: string): Promise<void> } })
+  .accessibility;
+
 const logger = (): ILogger => ({
   debug: vi.fn(),
   info: vi.fn(),
@@ -32,7 +36,7 @@ describe('AccessibilityService', () => {
   });
 
   it('should announce normal messages and skip verbose ones at normal verbosity', async () => {
-    const spy = vi.spyOn(vscode.accessibility, 'announce');
+    const spy = vi.spyOn(a11y, 'announce');
     const svc = AccessibilityService.create(logger());
     await svc.announce('hi', 'normal');
     await svc.announce('detail', 'verbose');
@@ -41,7 +45,7 @@ describe('AccessibilityService', () => {
   });
 
   it('should only announce minimal messages at minimal verbosity', async () => {
-    const spy = vi.spyOn(vscode.accessibility, 'announce');
+    const spy = vi.spyOn(a11y, 'announce');
     const svc = AccessibilityService.create(logger());
     svc.setVerbosity('minimal');
     await svc.announce('a', 'normal');
@@ -51,7 +55,7 @@ describe('AccessibilityService', () => {
   });
 
   it('should announce everything at verbose verbosity', async () => {
-    const spy = vi.spyOn(vscode.accessibility, 'announce');
+    const spy = vi.spyOn(a11y, 'announce');
     const svc = AccessibilityService.create(logger());
     svc.setVerbosity('verbose');
     await svc.announce('v', 'verbose');
@@ -59,7 +63,7 @@ describe('AccessibilityService', () => {
   });
 
   it('should format progress announcements', async () => {
-    const spy = vi.spyOn(vscode.accessibility, 'announce');
+    const spy = vi.spyOn(a11y, 'announce');
     const svc = AccessibilityService.create(logger());
     svc.setVerbosity('verbose');
     await svc.announceProgress('Scan', 1, 4);
@@ -67,7 +71,7 @@ describe('AccessibilityService', () => {
   });
 
   it('should ignore progress announcements when total is zero or negative', async () => {
-    const spy = vi.spyOn(vscode.accessibility, 'announce');
+    const spy = vi.spyOn(a11y, 'announce');
     const svc = AccessibilityService.create(logger());
     svc.setVerbosity('verbose');
     await svc.announceProgress('Scan', 1, 0);
@@ -76,7 +80,7 @@ describe('AccessibilityService', () => {
   });
 
   it('should log an error when the announcement API throws', async () => {
-    vi.spyOn(vscode.accessibility, 'announce').mockRejectedValue(new Error('boom'));
+    vi.spyOn(a11y, 'announce').mockRejectedValue(new Error('boom'));
     const log = logger();
     await AccessibilityService.create(log).announce('x', 'minimal');
     expect(log.error).toHaveBeenCalled();
