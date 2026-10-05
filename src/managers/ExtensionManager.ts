@@ -1,20 +1,24 @@
 import * as vscode from 'vscode';
 
-import { ConfigurationService } from '../services/configurationService';
+import { getService } from '../di/container';
+import type { IConfigurationService } from '../di/interfaces/IConfigurationService';
+import type { ILogger } from '../di/interfaces/ILogger';
+import { TYPES } from '../di/types';
 import { ConfigValidator } from '../utils/configValidator';
-import { Logger } from '../utils/logger';
+import type { ExtensionConfig } from '../utils/configValidator';
 
 import { CommandsManager } from './CommandsManager';
 
 export class ExtensionManager {
-  private logger: Logger;
-  private configService: ConfigurationService;
+  private readonly logger: ILogger;
+  private readonly configService: IConfigurationService;
+  private validatedConfig: ExtensionConfig | undefined;
   private commandsManager: CommandsManager;
   private disposables: vscode.Disposable[] = [];
 
   constructor() {
-    this.logger = Logger.getInstance();
-    this.configService = ConfigurationService.getInstance();
+    this.logger = getService<ILogger>(TYPES.Logger);
+    this.configService = getService<IConfigurationService>(TYPES.ConfigurationService);
     this.commandsManager = new CommandsManager();
   }
 
@@ -22,15 +26,10 @@ export class ExtensionManager {
     this.logger.info('Activating {{DISPLAY_NAME}} extension');
 
     try {
-      const rawConfig = {
-        enabled: this.configService.isEnabled(),
-        accessibility: {
-          verbosity: this.configService.getAccessibilityVerbosity(),
-          screenReaderMode: this.configService.isScreenReaderMode(),
-          keyboardNavigation: this.configService.isKeyboardNavigation(),
-        },
-      };
-      ConfigValidator.validate(rawConfig, this.logger);
+      this.validatedConfig = ConfigValidator.validate(
+        this.configService.getConfiguration(),
+        this.logger,
+      );
 
       await this.initializeComponents(context);
 
@@ -52,7 +51,6 @@ export class ExtensionManager {
       }
     } catch (error) {
       this.logger.error('Failed to activate extension', error);
-      vscode.window.showErrorMessage('Failed to activate {{DISPLAY_NAME}} extension');
       throw error;
     }
   }
@@ -94,15 +92,18 @@ export class ExtensionManager {
       }
     }
     this.disposables = [];
-    this.logger.dispose();
   }
 
   public getCommandsManager(): CommandsManager {
     return this.commandsManager;
   }
 
-  public getConfigurationService(): ConfigurationService {
+  public getConfigurationService(): IConfigurationService {
     return this.configService;
+  }
+
+  public getValidatedConfig(): ExtensionConfig | undefined {
+    return this.validatedConfig;
   }
 
   public isActive(): boolean {

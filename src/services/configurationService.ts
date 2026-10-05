@@ -3,14 +3,12 @@ import * as vscode from 'vscode';
 import type { IConfigurationService } from '../di/interfaces/IConfigurationService';
 import type { ILogger } from '../di/interfaces/ILogger';
 import type { ExtensionConfiguration } from '../types/config';
-import { Logger } from '../utils/logger';
 
 // The configuration section key — matches package.json "contributes.configuration" title key.
 // init.mjs replaces {{EXTENSION_ID}} automatically.
 const CONFIG_SECTION = '{{EXTENSION_ID}}';
 
 export class ConfigurationService implements IConfigurationService {
-  private static instance: ConfigurationService | undefined;
   private readonly logger: ILogger;
   private disposables: vscode.Disposable[] = [];
   private configChangeEmitter = new vscode.EventEmitter<void>();
@@ -25,11 +23,6 @@ export class ConfigurationService implements IConfigurationService {
         }
       }),
     );
-  }
-
-  public static getInstance(): ConfigurationService {
-    ConfigurationService.instance ??= new ConfigurationService(Logger.getInstance());
-    return ConfigurationService.instance;
   }
 
   public static create(logger: ILogger): ConfigurationService {

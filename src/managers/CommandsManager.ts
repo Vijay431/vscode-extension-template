@@ -20,6 +20,7 @@ export class CommandsManager {
   private registry: CommandRegistry | undefined;
   private disposables: vscode.Disposable[] = [];
 
+  // Disposables are owned solely by this manager; ExtensionManager disposes it.
   public async initialize(context: vscode.ExtensionContext): Promise<void> {
     this.registry = new CommandRegistry(context);
 
@@ -46,8 +47,6 @@ export class CommandsManager {
           .update('enabled', false, vscode.ConfigurationTarget.Global);
       }),
     );
-
-    this.disposables.forEach((d) => context.subscriptions.push(d));
   }
 
   public dispose(): void {
