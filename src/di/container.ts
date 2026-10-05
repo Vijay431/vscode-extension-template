@@ -72,19 +72,23 @@ export async function initializeContainer(context: {
   const { AccessibilityService } = await import('../services/accessibilityService');
 
   container.registerSingleton<ILogger>(TYPES.Logger, () => {
-    const logger = Logger.getInstance();
+    const logger = Logger.create();
     context.subscriptions.push({ dispose: () => logger.dispose() });
     return logger;
   });
 
   container.registerSingleton<IConfigurationService>(TYPES.ConfigurationService, () => {
     const logger = container.get<ILogger>(TYPES.Logger);
-    return ConfigurationService.create(logger);
+    const service = ConfigurationService.create(logger);
+    context.subscriptions.push({ dispose: () => service.dispose() });
+    return service;
   });
 
   container.registerSingleton<IAccessibilityService>(TYPES.AccessibilityService, () => {
     const logger = container.get<ILogger>(TYPES.Logger);
-    return AccessibilityService.create(logger);
+    const service = AccessibilityService.create(logger);
+    context.subscriptions.push({ dispose: () => service.dispose() });
+    return service;
   });
 
   // Register additional services here as your extension grows.
