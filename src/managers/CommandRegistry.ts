@@ -18,7 +18,8 @@
 
 import * as vscode from 'vscode';
 
-import type { CommandHandlerFactory } from '../commands';
+import type { CommandHandlerFactory, ICommandHandler } from '../commands';
+import type { ILogger } from '../di/interfaces/ILogger';
 
 /**
  * Command Metadata
@@ -60,11 +61,17 @@ export interface CommandMetadata {
 export class CommandRegistry {
   private readonly commands = new Map<
     string,
-    { metadata: CommandMetadata; disposable: vscode.Disposable }
+    { metadata: CommandMetadata; handler: ICommandHandler; disposable: vscode.Disposable }
   >();
-  private readonly disposables: vscode.Disposable[] = [];
 
-  constructor(private readonly _context: vscode.ExtensionContext) {}
+  /**
+   * @param _context - Extension context (kept for signature compatibility)
+   * @param logger - Optional logger used for command diagnostics
+   */
+  constructor(
+    _context: vscode.ExtensionContext,
+    private readonly logger?: ILogger,
+  ) {}
 
   /**
    * Register a command
@@ -73,19 +80,27 @@ export class CommandRegistry {
    * @returns This registry for chaining
    */
   public registerCommand(metadata: CommandMetadata): this {
+    // Replace any existing registration with the same ID
+    this.unregisterCommand(metadata.id);
+
     const handler = metadata.handlerFactory();
 
     const disposable = vscode.commands.registerCommand(metadata.id, async () => {
       try {
-        await handler.execute();
+        const result = await handler.execute();
+        if (!result.success) {
+          const detail = result.error ? `: ${result.error}` : '';
+          this.logger?.warn(`Command '${metadata.id}' failed`, result);
+          void vscode.window.showErrorMessage(`${result.message}${detail}`);
+        }
       } catch (error) {
-        vscode.window.showErrorMessage(`Command '${metadata.title}' failed: ${error}`);
-        console.error(`Command '${metadata.id}' error:`, error);
+        this.logger?.error(`Command '${metadata.id}' threw`, error);
+        const detail = error instanceof Error ? error.message : String(error);
+        void vscode.window.showErrorMessage(`Command '${metadata.title}' failed: ${detail}`);
       }
     });
 
-    this.commands.set(metadata.id, { metadata, disposable });
-    this.disposables.push(disposable);
+    this.commands.set(metadata.id, { metadata, handler, disposable });
 
     return this;
   }
@@ -151,25 +166,18 @@ export class CommandRegistry {
   public unregisterCommand(commandId: string): void {
     const entry = this.commands.get(commandId);
     if (entry) {
-      entry.disposable.dispose();
       this.commands.delete(commandId);
+      entry.disposable.dispose();
+      entry.handler.dispose?.();
     }
   }
 
   /**
-   * Dispose of all registered commands
+   * Dispose of all registered commands (idempotent)
    */
   public dispose(): void {
-    // Dispose all command disposables
-    for (const entry of this.commands.values()) {
-      entry.disposable.dispose();
+    for (const id of Array.from(this.commands.keys())) {
+      this.unregisterCommand(id);
     }
-    this.commands.clear();
-
-    // Dispose registry disposables
-    for (const disposable of this.disposables) {
-      disposable.dispose();
-    }
-    this.disposables.length = 0;
   }
 }
