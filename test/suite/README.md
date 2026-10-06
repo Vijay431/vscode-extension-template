@@ -39,7 +39,7 @@ No tests yet — this is a clean scaffold. Add your first test file here.
      });
    });
    ```
-2. Build: `npx tsc -p tsconfig.test.json`.
+2. Build: `pnpm exec tsc -p tsconfig.test.json`.
 3. Run: `pnpm run test:integration` (requires display; use `xvfb-run -a` on Linux).
 
 ## Reference architecture
