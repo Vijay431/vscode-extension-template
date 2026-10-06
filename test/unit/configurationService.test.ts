@@ -10,6 +10,7 @@ const logger = (): ILogger => ({
   warn: vi.fn(),
   error: vi.fn(),
   setLogLevel: vi.fn(),
+  setLogFormat: vi.fn(),
   show: vi.fn(),
   dispose: vi.fn(),
 });

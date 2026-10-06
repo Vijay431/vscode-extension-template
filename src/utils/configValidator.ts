@@ -1,15 +1,9 @@
 import type { ILogger } from '../di/interfaces/ILogger';
+import type { ExtensionConfiguration } from '../types/config';
 
 const VALID_VERBOSITY = ['minimal', 'normal', 'verbose'] as const;
 
-export interface ExtensionConfig {
-  enabled: boolean;
-  accessibility: {
-    verbosity: 'minimal' | 'normal' | 'verbose';
-    screenReaderMode: boolean;
-    keyboardNavigation: boolean;
-  };
-}
+export type ExtensionConfig = ExtensionConfiguration;
 
 export class ConfigValidator {
   public static validate(config: ExtensionConfig, logger: ILogger): ExtensionConfig {

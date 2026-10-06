@@ -32,6 +32,7 @@ export const window = {
   showErrorMessage: async () => undefined,
   showInformationMessage: async () => undefined,
   showInputBox: async () => undefined,
+  setStatusBarMessage: () => ({ dispose: () => {} }),
   activeTextEditor: undefined as unknown,
   createOutputChannel: () => ({
     appendLine: () => {},
@@ -55,10 +56,6 @@ export const languages = {
     delete: () => {},
     dispose: () => {},
   }),
-};
-
-export const accessibility = {
-  announce: async () => {},
 };
 
 export const env = {

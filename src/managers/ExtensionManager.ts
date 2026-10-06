@@ -5,14 +5,12 @@ import type { IConfigurationService } from '../di/interfaces/IConfigurationServi
 import type { ILogger } from '../di/interfaces/ILogger';
 import { TYPES } from '../di/types';
 import { ConfigValidator } from '../utils/configValidator';
-import type { ExtensionConfig } from '../utils/configValidator';
 
 import { CommandsManager } from './CommandsManager';
 
 export class ExtensionManager {
   private readonly logger: ILogger;
   private readonly configService: IConfigurationService;
-  private validatedConfig: ExtensionConfig | undefined;
   private commandsManager: CommandsManager;
   private disposables: vscode.Disposable[] = [];
 
@@ -26,10 +24,7 @@ export class ExtensionManager {
     this.logger.info('Activating {{DISPLAY_NAME}} extension');
 
     try {
-      this.validatedConfig = ConfigValidator.validate(
-        this.configService.getConfiguration(),
-        this.logger,
-      );
+      ConfigValidator.validate(this.configService.getConfiguration(), this.logger);
 
       await this.initializeComponents(context);
 
@@ -100,10 +95,6 @@ export class ExtensionManager {
 
   public getConfigurationService(): IConfigurationService {
     return this.configService;
-  }
-
-  public getValidatedConfig(): ExtensionConfig | undefined {
-    return this.validatedConfig;
   }
 
   public isActive(): boolean {

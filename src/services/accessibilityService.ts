@@ -2,15 +2,9 @@ import * as vscode from 'vscode';
 
 import type { IAccessibilityService, VerbosityLevel } from '../di/interfaces/IAccessibilityService';
 import type { ILogger } from '../di/interfaces/ILogger';
+import type { AccessibilityConfig } from '../types/config';
 
-/**
- * Accessibility configuration interface
- */
-export interface AccessibilityConfig {
-  verbosity: VerbosityLevel;
-  screenReaderMode: boolean;
-  keyboardNavigation: boolean;
-}
+export type { AccessibilityConfig } from '../types/config';
 
 /**
  * Accessibility Service
@@ -24,7 +18,7 @@ export interface AccessibilityConfig {
  * @description
  * This service handles all accessibility-related functionality including:
  * - Reading and caching accessibility configuration
- * - Providing screen reader announcements via VS Code's accessibility API
+ * - Providing screen reader announcements via transient status bar messages
  * - Centralizing accessibility logic for consistent behavior
  * - Supporting verbosity levels for different user needs
  *
@@ -146,7 +140,7 @@ export class AccessibilityService implements IAccessibilityService {
 
   /**
    * Announce a message to screen readers
-   * Uses VS Code's accessibility API for proper screen reader support
+   * Shows a transient status bar message; screen-reader behaviour depends on user settings
    *
    * @param message - The message to announce
    * @param verbosity - The importance level (minimal, normal, verbose)
@@ -159,13 +153,10 @@ export class AccessibilityService implements IAccessibilityService {
     }
 
     try {
-      // Use VS Code's accessibility API for screen reader announcements
-      const vsCodeAny = vscode as unknown as {
-        accessibility?: { announce(msg: string): Promise<void> };
-      };
-      if (vsCodeAny.accessibility) {
-        await vsCodeAny.accessibility.announce(message);
-      }
+      // VS Code has no public announce API. Status bar messages are exposed to
+      // assistive technology, but whether a screen reader reads them depends on
+      // the user's settings (e.g. accessibility.verbosity.*, screen reader mode).
+      vscode.window.setStatusBarMessage(message, 3000);
 
       this.logger.debug(`Accessibility announcement: ${message}`);
     } catch (error) {
@@ -212,7 +203,9 @@ export class AccessibilityService implements IAccessibilityService {
   }
 
   /**
-   * Create an accessible QuickPick item with proper labeling
+   * Create an accessible QuickPick item with proper labeling.
+   * Note: VS Code does not currently honor `ariaLabel`/`ariaDescription` on
+   * QuickPick items; the fields are kept for forward compatibility.
    */
   public createAccessibleQuickPickItem<T extends vscode.QuickPickItem>(
     item: T,
