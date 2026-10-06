@@ -105,7 +105,6 @@
     "yarn": false
   },
   "main": "./dist/extension.js",
-  "packageManager": "pnpm@12.4.2",
   "scripts": {
     "vscode:prepublish": "tsx esbuild.config.ts --production",
     "build": "tsx esbuild.config.ts",
