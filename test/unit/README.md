@@ -5,10 +5,10 @@ No live VS Code instance required — the `vscode` module is mocked.
 
 ## What lives here
 
-| File pattern | Purpose |
-|---|---|
-| `*.test.ts` | One test file per utility or service |
-| `../`__mocks__`/vscode.ts` | Minimal vscode mock (shared across all unit tests) |
+| File pattern               | Purpose                                            |
+| -------------------------- | -------------------------------------------------- |
+| `*.test.ts`                | One test file per utility or service               |
+| `../`**mocks**`/vscode.ts` | Minimal vscode mock (shared across all unit tests) |
 
 ## Current coverage
 
@@ -27,8 +27,15 @@ No tests yet — this is a clean scaffold. Add your first test file here.
 
 ```typescript
 function makeLogger(): ILogger {
-  return { debug: () => {}, info: () => {}, warn: () => {}, error: () => {},
-           setLogLevel: () => {}, show: () => {}, dispose: () => {} };
+  return {
+    debug: () => {},
+    info: () => {},
+    warn: () => {},
+    error: () => {},
+    setLogLevel: () => {},
+    show: () => {},
+    dispose: () => {},
+  };
 }
 ```
 
