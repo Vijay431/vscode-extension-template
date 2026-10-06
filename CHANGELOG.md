@@ -26,7 +26,7 @@ HOW TO MAINTAIN THIS FILE
 
 - Services are now resolved only through the DI container; `ExtensionManager` no longer builds its own `Logger`/`ConfigurationService`.
 - A command that returns `{ success: false }` now shows its message to the user; handlers can expose an optional `dispose()`.
-- Require Node.js 24+ (`engines.node`, `.nvmrc`, esbuild target, CI matrix, docs).
+- Development toolchain targets Node.js 24 (`engines.node`, `.nvmrc`, CI, docs). The bundled extension is built with esbuild `target: node18` and has no runtime dependencies, so it runs on Node.js 18+.
 - Bumped dev dependencies (vitest 4, @types/node 24, ovsx 1, concurrently 10, typescript-eslint 8.60, lint-staged 17.0.6, commitlint 21.0.2, eslint-plugin-prettier 5.5.6).
 
 ### Removed

@@ -21,7 +21,7 @@ By participating in this project, you are expected to uphold our [Code of Conduc
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) (version 24+ required)
+- [Node.js](https://nodejs.org/) (version 24+ required for development; the built extension targets Node.js 18+)
 - [PNPM](https://pnpm.io/) (install with `npm install -g pnpm`)
 - [Visual Studio Code](https://code.visualstudio.com/) (for development and testing)
 - [Git](https://git-scm.com/)
