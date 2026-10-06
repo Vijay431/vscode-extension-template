@@ -22,7 +22,7 @@ By participating in this project, you are expected to uphold our [Code of Conduc
 ### Prerequisites
 
 - [Node.js](https://nodejs.org/) (version 24+ required for development; the built extension targets Node.js 18+)
-- [PNPM](https://pnpm.io/) (install with `npm install -g pnpm`)
+- [PNPM](https://pnpm.io/) 11+ (enable with `corepack enable pnpm`, or see https://pnpm.io/installation)
 - [Visual Studio Code](https://code.visualstudio.com/) (for development and testing)
 - [Git](https://git-scm.com/)
 
@@ -87,11 +87,11 @@ pnpm run system:verify  # Verify Husky hooks are installed
 
 The project has two test layers:
 
-| Layer       | Command                     | Framework                       | What's covered                                                     |
-| ----------- | --------------------------- | ------------------------------- | ------------------------------------------------------------------ |
-| Unit        | `pnpm run test:unit`        | Vitest                          | Infrastructure utilities and services with mocked VS Code API      |
-| Unit (cov)  | `pnpm run test:unit:coverage` | Vitest + v8                  | Same as above; outputs `coverage/lcov.info` for Codecov            |
-| Integration | `pnpm run test:integration` | Mocha + `@vscode/test-electron` | Feature-level tests, end-to-end in a real VS Code instance        |
+| Layer       | Command                       | Framework                       | What's covered                                                |
+| ----------- | ----------------------------- | ------------------------------- | ------------------------------------------------------------- |
+| Unit        | `pnpm run test:unit`          | Vitest                          | Infrastructure utilities and services with mocked VS Code API |
+| Unit (cov)  | `pnpm run test:unit:coverage` | Vitest + v8                     | Same as above; outputs `coverage/lcov.info` for Codecov       |
+| Integration | `pnpm run test:integration`   | Mocha + `@vscode/test-electron` | Feature-level tests, end-to-end in a real VS Code instance    |
 
 **Unit tests** cover: `Cache`, `pathValidator`, `ConfigValidator`, `accessibilityHelper`, and services under `src/services/`.
 

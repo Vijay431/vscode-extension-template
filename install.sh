@@ -7,7 +7,7 @@ set -euo pipefail
 # Usage:
 #   bash <(curl -fsSL https://raw.githubusercontent.com/Vijay431/vscode-extension-template/main/install.sh)
 #
-# Prompts for: project-id, project-name, package manager (pnpm default).
+# Prompts for: project-id, project-name.
 # Creates ./<project-id>/, clones the template, fills all {{TOKEN}} placeholders,
 # installs dependencies, and exits with "Happy coding!"
 # ---------------------------------------------------------------------------
@@ -75,33 +75,22 @@ sed_rhs_escape() {
   printf '%s' "$1" | sed -e 's/[\\&|]/\\&/g'
 }
 
-setup_provider() {
-  local provider="$1"
-
-  if [[ "$provider" == "npm" ]]; then
-    if ! command -v npm &>/dev/null; then
-      echo "✗ npm not found. Install Node.js from https://nodejs.org/ and re-run." >&2
-      exit 1
-    fi
+setup_pnpm() {
+  if command -v pnpm &>/dev/null; then
     return 0
   fi
 
-  # pnpm or yarn — try corepack first (ships with Node >=16)
-  if command -v "$provider" &>/dev/null; then
-    return 0
-  fi
-
+  # Try corepack first (ships with Node >=16)
   if command -v corepack &>/dev/null; then
-    echo "  Setting up $provider via corepack…"
-    corepack enable "$provider" 2>/dev/null || true
-    corepack prepare "${provider}@latest" --activate 2>/dev/null || true
-    if command -v "$provider" &>/dev/null; then
+    echo "  Setting up pnpm via corepack…"
+    corepack enable pnpm 2>/dev/null || true
+    corepack prepare pnpm@latest --activate 2>/dev/null || true
+    if command -v pnpm &>/dev/null; then
       return 0
     fi
   fi
 
-  echo "✗ $provider not found." >&2
-  echo "  Install it with: npm install -g $provider" >&2
+  echo "✗ pnpm not found. Install it: https://pnpm.io/installation" >&2
   exit 1
 }
 
@@ -148,14 +137,6 @@ prompt_with_default "Project ID (kebab)"  ""      PROJECT_ID    "true"
 
 DERIVED_PROJECT_NAME=$(to_title_case "$PROJECT_ID")
 prompt_with_default "Project name"        "$DERIVED_PROJECT_NAME"  PROJECT_NAME  "true"
-prompt_with_default "Package manager"     "pnpm"   PROVIDER      "false"
-
-# Normalise provider
-PROVIDER="${PROVIDER:-pnpm}"
-if [[ "$PROVIDER" != "npm" && "$PROVIDER" != "pnpm" && "$PROVIDER" != "yarn" ]]; then
-  echo "  ⚠ Unknown provider '$PROVIDER'. Falling back to pnpm." >&2
-  PROVIDER="pnpm"
-fi
 
 # ---- derive remaining tokens -----------------------------------------------
 
@@ -177,7 +158,6 @@ echo ""
 echo "Review:"
 printf "  %-22s = %s\n" "Project ID"       "$PROJECT_ID"
 printf "  %-22s = %s\n" "Project name"     "$PROJECT_NAME"
-printf "  %-22s = %s\n" "Package manager"  "$PROVIDER"
 printf "  %-22s = %s\n" "Extension ID"     "$EXTENSION_ID"
 printf "  %-22s = %s\n" "Author"           "$AUTHOR_NAME <$AUTHOR_EMAIL>"
 printf "  %-22s = %s\n" "Repo URL"         "$REPO_URL"
@@ -191,12 +171,12 @@ if [[ "$confirm_lc" != "y" ]]; then
   exit 0
 fi
 
-# ---- provider setup --------------------------------------------------------
+# ---- pnpm setup ------------------------------------------------------------
 
 echo ""
-echo "Setting up package manager…"
-setup_provider "$PROVIDER"
-echo "  ✓ $PROVIDER ready."
+echo "Setting up pnpm…"
+setup_pnpm
+echo "  ✓ pnpm ready."
 
 # ---- check target dir ------------------------------------------------------
 
@@ -305,20 +285,11 @@ while IFS= read -r f; do mv "$f" "${f%.init}"; done \
   < <(find .github -type f -name '*.init' 2>/dev/null)
 echo "  ✓ .github files enabled."
 
-# ---- non-pnpm lockfile cleanup ---------------------------------------------
-
-if [[ "$PROVIDER" != "pnpm" ]]; then
-  echo ""
-  echo "Removing pnpm-specific files for $PROVIDER project…"
-  [[ -f pnpm-lock.yaml ]]    && rm -f pnpm-lock.yaml    && echo "  ✓ Removed pnpm-lock.yaml"
-  [[ -f pnpm-workspace.yaml ]] && rm -f pnpm-workspace.yaml && echo "  ✓ Removed pnpm-workspace.yaml"
-fi
-
 # ---- install dependencies --------------------------------------------------
 
 echo ""
-echo "Installing dependencies with $PROVIDER…"
-"$PROVIDER" install
+echo "Installing dependencies with pnpm…"
+pnpm install
 echo "  ✓ Dependencies installed."
 
 # ---- done ------------------------------------------------------------------

@@ -18,13 +18,26 @@
     "url": "{{REPO_URL}}/issues"
   },
   "homepage": "{{REPO_URL}}#readme",
-  "keywords": ["vscode-extension"],
-  "categories": ["Other"],
+  "keywords": [
+    "vscode-extension"
+  ],
+  "categories": [
+    "Other"
+  ],
   "engines": {
     "node": ">=24",
     "vscode": ">=1.111.0"
   },
-  "activationEvents": ["onStartupFinished"],
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": ">=11",
+      "onFail": "error"
+    }
+  },
+  "activationEvents": [
+    "onStartupFinished"
+  ],
   "contributes": {
     "commands": [
       {
@@ -58,7 +71,11 @@
         },
         "{{EXTENSION_ID}}.accessibility.verbosity": {
           "type": "string",
-          "enum": ["minimal", "normal", "verbose"],
+          "enum": [
+            "minimal",
+            "normal",
+            "verbose"
+          ],
           "default": "normal",
           "description": "Verbosity of accessibility announcements for screen readers"
         },
@@ -113,7 +130,7 @@
     "rebuild": "pnpm run clean && pnpm run build && vsce package",
     "test:unit": "vitest run",
     "test:unit:coverage": "vitest run --coverage --coverage.reporter=text --coverage.reporter=lcov",
-    "test:integration": "npx tsc -p tsconfig.test.json && xvfb-run -a node ./out-test/test/runTests.js",
+    "test:integration": "tsc -p tsconfig.test.json && xvfb-run -a node ./out-test/test/runTests.js",
     "package": "vsce package",
     "package:openvsx": "ovsx package",
     "publish": "vsce publish",
@@ -143,16 +160,34 @@
     "embeddedLanguageFormatting": "auto"
   },
   "lint-staged": {
-    "src/**/*.{ts,tsx}": ["eslint --no-cache --fix --quiet", "prettier --write"],
-    "scripts/**/*.{ts,tsx}": ["eslint --no-cache --fix --quiet", "prettier --write"],
-    "*.{json,yaml,yml}": ["prettier --write"],
-    "*.md": ["prettier --write"],
-    "*.{html,css}": ["prettier --write"],
-    "package.json": ["prettier --write"],
-    "tsconfig.json": ["prettier --write"]
+    "src/**/*.{ts,tsx}": [
+      "eslint --no-cache --fix --quiet",
+      "prettier --write"
+    ],
+    "scripts/**/*.{ts,tsx}": [
+      "eslint --no-cache --fix --quiet",
+      "prettier --write"
+    ],
+    "*.{json,yaml,yml}": [
+      "prettier --write"
+    ],
+    "*.md": [
+      "prettier --write"
+    ],
+    "*.{html,css}": [
+      "prettier --write"
+    ],
+    "package.json": [
+      "prettier --write"
+    ],
+    "tsconfig.json": [
+      "prettier --write"
+    ]
   },
   "commitlint": {
-    "extends": ["@commitlint/config-conventional"]
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
   },
   "devDependencies": {
     "@commitlint/cli": "^21.0.2",
