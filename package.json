@@ -97,6 +97,7 @@
     "yarn": false
   },
   "main": "./dist/extension.js",
+  "packageManager": "pnpm@12.4.2",
   "scripts": {
     "vscode:prepublish": "tsx esbuild.config.ts --production",
     "build": "tsx esbuild.config.ts",
@@ -110,8 +111,10 @@
     "package:openvsx": "ovsx package",
     "publish": "vsce publish",
     "publish:openvsx": "ovsx publish",
-    "lint": "eslint src",
-    "lint:fix": "eslint src --fix",
+    "lint": "eslint src test",
+    "lint:fix": "eslint src test --fix",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.test.json",
+    "smoke:bundle": "node scripts/smoke-bundle.cjs",
     "lint-staged": "lint-staged",
     "format": "prettier --write .",
     "system:verify": "husky"
