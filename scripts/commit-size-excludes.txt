@@ -4,5 +4,3 @@
 # read this file so the exclusion list stays in one place.
 
 pnpm-lock\.yaml$
-package-lock\.json$
-yarn\.lock$

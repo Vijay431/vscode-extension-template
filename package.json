@@ -24,6 +24,13 @@
     "node": ">=22",
     "vscode": ">=1.111.0"
   },
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": ">=11",
+      "onFail": "error"
+    }
+  },
   "activationEvents": ["onStartupFinished"],
   "contributes": {
     "commands": [
@@ -105,7 +112,7 @@
     "rebuild": "pnpm run clean && pnpm run build && vsce package",
     "test:unit": "vitest run",
     "test:unit:coverage": "vitest run --coverage --coverage.reporter=text --coverage.reporter=lcov",
-    "test:integration": "npx tsc -p tsconfig.test.json && xvfb-run -a node ./out-test/test/runTests.js",
+    "test:integration": "tsc -p tsconfig.test.json && xvfb-run -a node ./out-test/test/runTests.js",
     "package": "vsce package",
     "package:openvsx": "ovsx package",
     "publish": "vsce publish",
