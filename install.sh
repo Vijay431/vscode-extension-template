@@ -119,7 +119,10 @@ fi
 
 NODE_VERSION=$(node --version | sed 's/^v//')
 NODE_MAJOR="${NODE_VERSION%%.*}"
-if ! [[ "$NODE_MAJOR" =~ ^[0-9]+$ ]] || (( NODE_MAJOR < 22 )); then
+NODE_MINOR="${NODE_VERSION#*.}"
+NODE_MINOR="${NODE_MINOR%%.*}"
+if ! [[ "$NODE_MAJOR" =~ ^[0-9]+$ ]] || ! [[ "$NODE_MINOR" =~ ^[0-9]+$ ]] \
+  || (( NODE_MAJOR < 22 )) || (( NODE_MAJOR == 22 && NODE_MINOR < 12 )); then
   echo "✗ Node.js $NODE_VERSION is too old. Node 22.12 or newer is required (Node 24 recommended)." >&2
   exit 1
 fi

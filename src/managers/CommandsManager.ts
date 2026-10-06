@@ -20,8 +20,8 @@ export class CommandsManager {
   private registry: CommandRegistry | undefined;
   private disposables: vscode.Disposable[] = [];
 
-  // Disposables are also registered on context.subscriptions as soon as created;
-  // dispose() is idempotent.
+  // The manager owns these disposables; its own disposer on context.subscriptions
+  // releases them, and dispose() is idempotent.
   public async initialize(context: vscode.ExtensionContext): Promise<void> {
     this.registry = new CommandRegistry(context);
     // Register with the context immediately so a later failure cannot leak.
@@ -44,7 +44,6 @@ export class CommandsManager {
         .update('enabled', true, vscode.ConfigurationTarget.Global);
     });
     this.disposables.push(enable);
-    context.subscriptions.push(enable);
 
     const disable = vscode.commands.registerCommand('{{EXTENSION_ID}}.disable', async () => {
       await vscode.workspace
@@ -52,7 +51,6 @@ export class CommandsManager {
         .update('enabled', false, vscode.ConfigurationTarget.Global);
     });
     this.disposables.push(disable);
-    context.subscriptions.push(disable);
   }
 
   public dispose(): void {

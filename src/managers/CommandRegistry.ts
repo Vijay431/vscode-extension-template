@@ -167,8 +167,11 @@ export class CommandRegistry {
     const entry = this.commands.get(commandId);
     if (entry) {
       this.commands.delete(commandId);
-      entry.disposable.dispose();
-      entry.handler.dispose?.();
+      try {
+        entry.disposable.dispose();
+      } finally {
+        entry.handler.dispose?.();
+      }
     }
   }
 
@@ -177,7 +180,11 @@ export class CommandRegistry {
    */
   public dispose(): void {
     for (const id of Array.from(this.commands.keys())) {
-      this.unregisterCommand(id);
+      try {
+        this.unregisterCommand(id);
+      } catch {
+        // One failing handler must not leave the remaining commands registered.
+      }
     }
   }
 }

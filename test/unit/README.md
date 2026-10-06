@@ -8,7 +8,7 @@ No live VS Code instance required — the `vscode` module is mocked.
 | File pattern               | Purpose                                            |
 | -------------------------- | -------------------------------------------------- |
 | `*.test.ts`                | One test file per utility or service               |
-| `../`**mocks**`/vscode.ts` | Minimal vscode mock (shared across all unit tests) |
+| `../__mocks__/vscode.ts` | Minimal vscode mock (shared across all unit tests) |
 
 ## Current coverage
 
