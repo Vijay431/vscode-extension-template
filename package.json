@@ -79,6 +79,14 @@
         {
           "command": "{{EXTENSION_ID}}.helloWorld",
           "when": "{{EXTENSION_ID}}.enabled"
+        },
+        {
+          "command": "{{EXTENSION_ID}}.enable",
+          "when": "!{{EXTENSION_ID}}.enabled"
+        },
+        {
+          "command": "{{EXTENSION_ID}}.disable",
+          "when": "{{EXTENSION_ID}}.enabled"
         }
       ]
     }

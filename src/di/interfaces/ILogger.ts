@@ -1,4 +1,4 @@
-import { LogCategory, LogLevel } from '../../utils/logger';
+import { LogCategory, LogFormat, LogLevel } from '../../utils/logger';
 
 export interface ILogger {
   debug(message: string, data?: unknown, category?: LogCategory): void;
@@ -6,6 +6,7 @@ export interface ILogger {
   warn(message: string, data?: unknown, category?: LogCategory): void;
   error(message: string, error?: unknown, category?: LogCategory): void;
   setLogLevel(level: LogLevel): void;
+  setLogFormat(format: LogFormat): void;
   show(): void;
   dispose(): void;
 }
