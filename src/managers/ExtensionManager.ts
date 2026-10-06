@@ -34,7 +34,6 @@ export class ExtensionManager {
         }),
       );
 
-      this.disposables.forEach((d) => context.subscriptions.push(d));
       context.subscriptions.push({ dispose: () => this.dispose() });
 
       await this.updateEnabledContext();

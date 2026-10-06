@@ -65,12 +65,15 @@ describe('ExtensionManager', () => {
     container.clear();
   });
 
-  it('should validate the configuration and expose it after activation', async () => {
-    const manager = new ExtensionManager();
-    await manager.activate(makeContext());
+  it('should validate the configuration during activation and warn on invalid values', async () => {
+    configService.getConfiguration.mockReturnValueOnce({
+      ...validConfig,
+      accessibility: { ...validConfig.accessibility, verbosity: 'loud' },
+    });
+    await new ExtensionManager().activate(makeContext());
 
     expect(configService.getConfiguration).toHaveBeenCalled();
-    expect(manager.getValidatedConfig()).toEqual(validConfig);
+    expect(logger.warn).toHaveBeenCalledWith(expect.stringContaining('accessibility.verbosity'));
   });
 
   it('should register the showOutputChannel command that shows the logger', async () => {
