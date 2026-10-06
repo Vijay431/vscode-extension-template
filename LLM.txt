@@ -177,7 +177,7 @@ const hint = getKeyboardNavigationHint(true, currentIndex, totalItems);
 3. **Implement the service** in `src/services/myService.ts`:
    - `class MyService implements IMyService`
    - `static create(logger: ILogger): MyService` factory method
-   - Singleton pattern; no `new MyService()` outside container.
+   - DI-only: instances come from the `create()` factory registered in the container; never call `new MyService()` outside the container.
 4. **Register** in `src/di/container.ts` `initializeContainer()`:
    `container.registerSingleton(TYPES.MyService, () => MyService.create(logger));`
 5. **Create the command** by copying `src/commands/HelloWorldCommand.ts` → `src/commands/MyFeatureCommand.ts`:

@@ -4,16 +4,16 @@ A production-ready, opinionated template for building VS Code extensions. Mirror
 
 ## What's included
 
-| Layer | Details |
-|---|---|
-| **Build** | esbuild with lazy-service chunk splitting; production minification; bundle size reporting |
-| **DI container** | Lightweight singleton container — no InversifyJS dependency |
-| **Commands** | `BaseCommandHandler` abstract class + `ICommandHandler` interface; `CommandsManager` registers all commands |
-| **Services** | `ConfigurationService`, `AccessibilityService` wired at startup |
-| **Utils** | `Logger`, `Cache` (LRU + TTL), `ConfigValidator`, `PathValidator`, accessibility helpers |
-| **Tests** | Vitest unit test harness (no live VS Code); Mocha integration test harness (live Extension Host via `@vscode/test-electron`) |
-| **CI/CD** | GitHub Actions that activate on bootstrap: lint → unit tests → integration tests → cross-platform build → release → dual publish |
-| **Starter command** | Hello World wired end-to-end (DI → manager → command) |
+| Layer               | Details                                                                                                                          |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| **Build**           | esbuild with lazy-service chunk splitting; production minification; bundle size reporting                                        |
+| **DI container**    | Lightweight singleton container — no InversifyJS dependency                                                                      |
+| **Commands**        | `BaseCommandHandler` abstract class + `ICommandHandler` interface; `CommandsManager` registers all commands                      |
+| **Services**        | `ConfigurationService`, `AccessibilityService` wired at startup                                                                  |
+| **Utils**           | `Logger`, `Cache` (LRU + TTL), `ConfigValidator`, `isSafeFilePath`, accessibility helpers                                        |
+| **Tests**           | Vitest unit test harness (no live VS Code); Mocha integration test harness (live Extension Host via `@vscode/test-electron`)     |
+| **CI/CD**           | GitHub Actions that activate on bootstrap: lint → unit tests → integration tests → cross-platform build → release → dual publish |
+| **Starter command** | Hello World wired end-to-end (DI → manager → command)                                                                            |
 
 ## Bootstrap a new extension
 
@@ -25,30 +25,30 @@ bash <(curl -fsSL https://raw.githubusercontent.com/Vijay431/vscode-extension-te
 
 ### What the script prompts for
 
-| Prompt | Example | Notes |
-|---|---|---|
-| Project ID | `my-ext` | Required; kebab-case; becomes the package name, config namespace, and directory name |
-| Project name | `My Ext` | Human-readable title (default: Title-Case of Project ID) |
-| Package manager | `pnpm` | `pnpm` (default), `npm`, or `yarn` |
+| Prompt          | Example  | Notes                                                                                |
+| --------------- | -------- | ------------------------------------------------------------------------------------ |
+| Project ID      | `my-ext` | Required; kebab-case; becomes the package name, config namespace, and directory name |
+| Project name    | `My Ext` | Human-readable title (default: Title-Case of Project ID)                             |
+| Package manager | `pnpm`   | `pnpm` (default), `npm`, or `yarn`                                                   |
 
 ### What the script derives automatically
 
 From the three inputs above, the script computes all 11 `{{TOKEN}}` placeholders without
 additional prompts:
 
-| Token | Source |
-|---|---|
-| `{{EXTENSION_NAME}}` | Project ID (as-is) |
-| `{{EXTENSION_ID}}` | camelCase of Project ID |
-| `{{DISPLAY_NAME}}` | Project name |
-| `{{AUTHOR_NAME}}` | `git config user.name` |
-| `{{AUTHOR_EMAIL}}` | `git config user.email` |
-| `{{GITHUB_USERNAME}}` | Slugified author name |
-| `{{PUBLISHER}}` | Same as GitHub username |
-| `{{REPO_URL}}` | `https://github.com/<username>/<project-id>` |
-| `{{SITE_URL}}` | `https://<username>.github.io/<project-id>` |
-| `{{YEAR}}` | Current year |
-| `{{DESCRIPTION}}` | Generic default (edit after bootstrap) |
+| Token                 | Source                                       |
+| --------------------- | -------------------------------------------- |
+| `{{EXTENSION_NAME}}`  | Project ID (as-is)                           |
+| `{{EXTENSION_ID}}`    | camelCase of Project ID                      |
+| `{{DISPLAY_NAME}}`    | Project name                                 |
+| `{{AUTHOR_NAME}}`     | `git config user.name`                       |
+| `{{AUTHOR_EMAIL}}`    | `git config user.email`                      |
+| `{{GITHUB_USERNAME}}` | Slugified author name                        |
+| `{{PUBLISHER}}`       | Same as GitHub username                      |
+| `{{REPO_URL}}`        | `https://github.com/<username>/<project-id>` |
+| `{{SITE_URL}}`        | `https://<username>.github.io/<project-id>`  |
+| `{{YEAR}}`            | Current year                                 |
+| `{{DESCRIPTION}}`     | Generic default (edit after bootstrap)       |
 
 ### Step-by-step bootstrap flow
 
@@ -87,27 +87,31 @@ additional prompts:
 ## Publishing
 
 ### First release
+
 ```bash
 git tag v0.0.1 && git push origin v0.0.1
 ```
+
 CI handles packaging, verification, and dual-publish.
 
 ### Pre-release (odd minor version)
+
 ```bash
 git tag v0.1.0-beta.1 && git push origin v0.1.0-beta.1
 ```
 
 ### Stable release
+
 ```bash
 git tag v0.2.0 && git push origin v0.2.0
 ```
 
 ## Secrets required
 
-| Secret | Where |
-|--------|-------|
+| Secret     | Where                                     |
+| ---------- | ----------------------------------------- |
 | `VSCE_PAT` | VS Code Marketplace Personal Access Token |
-| `OVSX_PAT` | Open VSX Registry token |
+| `OVSX_PAT` | Open VSX Registry token                   |
 
 ## Development
 
@@ -125,11 +129,11 @@ Press **F5** in VS Code to launch the Extension Development Host.
 
 ## scripts/
 
-| Script | Purpose |
-|---|---|
-| `check-commit-size.sh` | Enforces ≤ 10 files and ≤ 400 changed lines per staged commit. Invoked by the `pre-commit` Husky hook and the `pr-commit-size` CI job. Accepts `--excludes <file>` to point at a custom exclusion patterns file. |
-| `commit-size-excludes.txt` | Glob patterns excluded from the commit size count — lockfiles, generated files, etc. Referenced by `check-commit-size.sh` by default. |
-| `convert-encoding.sh` | Normalizes all tracked text files to UTF-8 encoding and LF line endings. Run manually when files arrive with CRLF or non-UTF-8 encoding. |
+| Script                     | Purpose                                                                                                                                                                                                          |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `check-commit-size.sh`     | Enforces ≤ 10 files and ≤ 400 changed lines per staged commit. Invoked by the `pre-commit` Husky hook and the `pr-commit-size` CI job. Accepts `--excludes <file>` to point at a custom exclusion patterns file. |
+| `commit-size-excludes.txt` | Glob patterns excluded from the commit size count — lockfiles, generated files, etc. Referenced by `check-commit-size.sh` by default.                                                                            |
+| `convert-encoding.sh`      | Normalizes all tracked text files to UTF-8 encoding and LF line endings. Run manually when files arrive with CRLF or non-UTF-8 encoding.                                                                         |
 
 ## Optional: GitHub Pages
 
