@@ -21,7 +21,7 @@ By participating in this project, you are expected to uphold our [Code of Conduc
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) (version 22+ required, 22, 24, and 26 supported)
+- [Node.js](https://nodejs.org/) (version 24+ required)
 - [PNPM](https://pnpm.io/) (install with `npm install -g pnpm`)
 - [Visual Studio Code](https://code.visualstudio.com/) (for development and testing)
 - [Git](https://git-scm.com/)
@@ -57,7 +57,7 @@ pnpm install
 ### 3. Build and Verify
 
 ```bash
-# Build the extension (requires Node.js 20+)
+# Build the extension (requires Node.js 24+)
 pnpm run build
 
 # Run ESLint — uses tsconfig.eslint.json for type-aware rules
@@ -212,7 +212,7 @@ Workflows and most other `.github/` files ship as `*.init` placeholders in the t
 - `lint` — runs `pnpm run lint`
 - `test-unit` — runs `pnpm run test:unit` (Vitest, ubuntu only, after `lint`)
 - `test-integration` — runs `pnpm run test:integration` (Mocha + VS Code, ubuntu/windows/macOS, after `lint`, parallel with `test-unit`)
-- `build` — builds on Ubuntu, Windows, macOS × Node 20/22/24 × VS Code stable/insiders (after both test jobs pass)
+- `build` — builds on Ubuntu, Windows, macOS × Node 24 × VS Code stable/insiders (after both test jobs pass)
 - `audit` — runs `pnpm audit --audit-level=moderate`
 - `dependency-review` — reviews dependency changes on PRs
 

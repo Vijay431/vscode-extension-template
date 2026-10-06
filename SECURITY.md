@@ -6,7 +6,7 @@ We provide security updates for the following versions of {{DISPLAY_NAME}}:
 
 | Version | Supported          | Node.js Compatibility |
 | ------- | ------------------ | --------------------- |
-| 0.0.x   | :white_check_mark: | Node.js 20, 22, 24    |
+| 0.0.x   | :white_check_mark: | Node.js 24            |
 
 ## Reporting a Vulnerability
 

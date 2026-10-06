@@ -21,7 +21,7 @@
   "keywords": ["vscode-extension"],
   "categories": ["Other"],
   "engines": {
-    "node": ">=22",
+    "node": ">=24",
     "vscode": ">=1.111.0"
   },
   "activationEvents": ["onStartupFinished"],
