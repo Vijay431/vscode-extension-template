@@ -22,7 +22,8 @@ jobs:
 
       - name: Install PNPM
         uses: pnpm/action-setup@v4
-        # No `version:` — pnpm is resolved from package.json "packageManager".
+        with:
+          version: 12
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
