@@ -10,7 +10,7 @@ A production-ready, opinionated template for building VS Code extensions. Mirror
 | **DI container**    | Lightweight singleton container — no InversifyJS dependency                                                                      |
 | **Commands**        | `BaseCommandHandler` abstract class + `ICommandHandler` interface; `CommandsManager` registers all commands                      |
 | **Services**        | `ConfigurationService`, `AccessibilityService` wired at startup                                                                  |
-| **Utils**           | `Logger`, `Cache` (LRU + TTL), `ConfigValidator`, `PathValidator`, accessibility helpers                                         |
+| **Utils**           | `Logger`, `Cache` (LRU + TTL), `ConfigValidator`, `isSafeFilePath`, accessibility helpers                                        |
 | **Tests**           | Vitest unit test harness (no live VS Code); Mocha integration test harness (live Extension Host via `@vscode/test-electron`)     |
 | **CI/CD**           | GitHub Actions that activate on bootstrap: lint → unit tests → integration tests → cross-platform build → release → dual publish |
 | **Starter command** | Hello World wired end-to-end (DI → manager → command)                                                                            |

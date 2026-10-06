@@ -37,10 +37,10 @@ Categories: `GENERAL` (default, no prefix), `PERFORMANCE`, `OPERATION`, `SECURIT
 
 ### Cache<T>
 ```typescript
-const cache = createCache<MyData>({ ttl: 30_000, maxSize: 200 });
+const cache = createCache<MyData>({ defaultTTL: 30_000, maxSize: 200 });
 cache.set('key', value);
 const v = cache.get('key');                    // MyData | undefined
-const result = await cache.memoize('key', () => expensiveOp());
+// memoize is a method decorator: @memoize(ttlMs?, keyGenerator?) on a class method
 ```
 Use it to cache expensive lookups (e.g. workspace scans) behind a TTL.
 

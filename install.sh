@@ -12,8 +12,8 @@ set -euo pipefail
 # installs dependencies, and exits with "Happy coding!"
 # ---------------------------------------------------------------------------
 
-TEMPLATE_REPO_URL="https://github.com/Vijay431/vscode-extension-template.git"
-TEMPLATE_BRANCH="main"
+TEMPLATE_REPO_URL="${TEMPLATE_REPO_URL:-https://github.com/Vijay431/vscode-extension-template.git}"
+TEMPLATE_BRANCH="${TEMPLATE_BRANCH:-main}"
 
 # ---- helpers ---------------------------------------------------------------
 
@@ -101,6 +101,24 @@ if ! command -v git &>/dev/null; then
   exit 1
 fi
 
+if ! command -v node &>/dev/null; then
+  echo "✗ node not found. Install Node.js 24 (minimum 22.12) from https://nodejs.org/ and re-run." >&2
+  exit 1
+fi
+
+NODE_VERSION=$(node --version | sed 's/^v//')
+NODE_MAJOR="${NODE_VERSION%%.*}"
+NODE_MINOR="${NODE_VERSION#*.}"
+NODE_MINOR="${NODE_MINOR%%.*}"
+if ! [[ "$NODE_MAJOR" =~ ^[0-9]+$ ]] || ! [[ "$NODE_MINOR" =~ ^[0-9]+$ ]] \
+  || (( NODE_MAJOR < 22 )) || (( NODE_MAJOR == 22 && NODE_MINOR < 12 )); then
+  echo "✗ Node.js $NODE_VERSION is too old. Node 22.12 or newer is required (Node 24 recommended)." >&2
+  exit 1
+fi
+if (( NODE_MAJOR < 24 )); then
+  echo "  ⚠ Node.js $NODE_VERSION detected. Node 24 or newer is recommended (package.json engines)." >&2
+fi
+
 # ---- collect defaults from git config --------------------------------------
 
 DEFAULT_AUTHOR_NAME=$(git config --get user.name 2>/dev/null || echo "")
@@ -147,7 +165,8 @@ echo ""
 printf "Apply? [y/N]: "
 read -r confirm
 
-if [[ "${confirm,,}" != "y" ]]; then
+confirm_lc=$(printf '%s' "$confirm" | tr '[:upper:]' '[:lower:]')
+if [[ "$confirm_lc" != "y" ]]; then
   echo "Aborted. No files changed."
   exit 0
 fi
@@ -183,12 +202,18 @@ rm -rf .git
 # Remove the bootstrap script from the clone — it doesn't belong in the new project
 rm -f install.sh
 
+# The template's own CI workflow must not ship in generated projects
+rm -f .github/workflows/template-check.yml
+
 # ---- replace tokens --------------------------------------------------------
 
 echo ""
 echo "Filling in project tokens…"
 
-mapfile -t FILES < <(find . -type f | sed 's|^\./||')
+FILES=()
+while IFS= read -r f; do
+  FILES+=("$f")
+done < <(find . -type f | sed 's|^\./||')
 
 EXCLUDE_PATTERNS=(
   'node_modules/'
@@ -206,7 +231,7 @@ EXCLUDE_PATTERNS=(
 )
 
 replaced=0
-for f in "${FILES[@]}"; do
+for f in ${FILES[@]+"${FILES[@]}"}; do
   skip=false
   for pat in "${EXCLUDE_PATTERNS[@]}"; do
     if echo "$f" | grep -qE "$pat"; then
@@ -237,11 +262,14 @@ echo "  ✓ Processed ${replaced} files."
 
 # ---- verify no tokens remain -----------------------------------------------
 
+# LLM.txt is excluded: it documents the {{TOKEN}} syntax with literal examples
+# on purpose, which would always be reported as false positives.
 remaining=$(grep -rE '\{\{(EXTENSION_NAME|DISPLAY_NAME|EXTENSION_ID|PUBLISHER|DESCRIPTION|AUTHOR_NAME|AUTHOR_EMAIL|REPO_URL|SITE_URL|GITHUB_USERNAME|YEAR)\}\}' \
   --include='*.ts' --include='*.js' --include='*.json' \
   --include='*.md' --include='*.yml' --include='*.yaml' \
   --include='*.html' --include='*.css' --include='*.sh' \
-  . 2>/dev/null | grep -v 'node_modules' | grep -v 'dist/' | grep -v 'out-test/' | grep -v 'coverage/' || true)
+  --include='*.txt' --include='*.mjs' --include='*.cjs' \
+  . 2>/dev/null | grep -v '^\./LLM\.txt:' | grep -v 'node_modules'| grep -v 'dist/' | grep -v 'out-test/' | grep -v 'coverage/' || true)
 
 if [[ -n "$remaining" ]]; then
   echo ""

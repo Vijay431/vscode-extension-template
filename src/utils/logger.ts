@@ -22,18 +22,12 @@ export enum LogCategory {
 }
 
 export class Logger implements ILogger {
-  private static instance: Logger | undefined;
   private outputChannel: vscode.OutputChannel;
   private logLevel: LogLevel = LogLevel.INFO;
   private logFormat: LogFormat = LogFormat.TEXT;
 
   private constructor(outputChannel?: vscode.OutputChannel) {
     this.outputChannel = outputChannel ?? vscode.window.createOutputChannel('{{DISPLAY_NAME}}');
-  }
-
-  public static getInstance(): Logger {
-    Logger.instance ??= new Logger();
-    return Logger.instance;
   }
 
   public static create(outputChannel?: vscode.OutputChannel): Logger {
@@ -104,13 +98,13 @@ export class Logger implements ILogger {
 
     if (this.logFormat === LogFormat.JSON) {
       const logEntry: Record<string, unknown> = { timestamp, level: levelName, category, message };
-      if (data) logEntry['data'] = data;
+      if (data !== undefined) logEntry['data'] = data;
       this.outputChannel.appendLine(JSON.stringify(logEntry));
     } else {
       const categoryPrefix = category !== LogCategory.GENERAL ? `[${category.toUpperCase()}] ` : '';
       const logMessage = `[${timestamp}] [${levelName}] ${categoryPrefix}${message}`;
       this.outputChannel.appendLine(logMessage);
-      if (data) {
+      if (data !== undefined) {
         this.outputChannel.appendLine(`Data: ${JSON.stringify(data, null, 2)}`);
       }
     }

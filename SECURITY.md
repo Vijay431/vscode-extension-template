@@ -6,7 +6,7 @@ We provide security updates for the following versions of {{DISPLAY_NAME}}:
 
 | Version | Supported          | Node.js Compatibility |
 | ------- | ------------------ | --------------------- |
-| 0.0.x   | :white_check_mark: | Node.js 20, 22, 24    |
+| 0.0.x   | :white_check_mark: | Node.js 18+ (runtime) |
 
 ## Reporting a Vulnerability
 
@@ -65,6 +65,6 @@ Security updates will be released through:
 
 ## Node.js Compatibility & Security
 
-This extension is compatible with Node.js versions 20, 22, and 24. Security updates will maintain compatibility across this range. If you're using an unsupported Node.js version, please upgrade to receive security updates.
+The built extension has no runtime dependencies and is compatible with Node.js 18 and later. Security updates will maintain compatibility across this range. If you're using an unsupported Node.js version, please upgrade to receive security updates.
 
 Thank you for helping keep {{DISPLAY_NAME}} and its users safe!

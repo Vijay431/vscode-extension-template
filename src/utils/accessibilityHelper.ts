@@ -61,7 +61,8 @@ export function getAccessibleLabel(label: string, description?: string, detail?:
 }
 
 /**
- * Announce a message to screen readers using VS Code's accessibility API
+ * Announce a message via a transient status bar message (VS Code has no public
+ * announce API). Whether a screen reader reads it depends on user settings.
  *
  * @param message - The message to announce
  * @param _priority - Whether this is a priority announcement (errors, critical info)
@@ -73,14 +74,9 @@ export function getAccessibleLabel(label: string, description?: string, detail?:
  */
 export async function announceToScreenReader(message: string, _priority = false): Promise<void> {
   try {
-    const vsCodeAny = vscode as unknown as {
-      accessibility?: { announce(msg: string): Promise<void> };
-    };
-    if (vsCodeAny.accessibility) {
-      await vsCodeAny.accessibility.announce(message);
-    }
-  } catch (error) {
-    console.error('Failed to announce to screen reader:', error);
+    vscode.window.setStatusBarMessage(message, 3000);
+  } catch {
+    // Announcements are best-effort; never let them break the caller.
   }
 }
 
@@ -109,7 +105,9 @@ export function formatAccessiblePlaceholder(baseText: string, count: number): st
 }
 
 /**
- * Create a QuickPick item with proper accessibility attributes
+ * Create a QuickPick item with proper accessibility attributes.
+ * Note: VS Code does not currently honor `ariaLabel`/`ariaDescription` on
+ * QuickPick items; the fields are kept for forward compatibility.
  *
  * @param item - The base QuickPick item
  * @param options - Accessibility options
@@ -140,7 +138,8 @@ export function getAccessibleQuickPickItem<T = unknown>(
 
 /**
  * Create accessible QuickPick items from an array
- * Automatically generates ARIA labels and descriptions
+ * Automatically generates ARIA labels and descriptions.
+ * Note: VS Code does not currently honor `ariaLabel` on QuickPick items.
  *
  * @param items - Array of QuickPick items
  * @param itemType - Optional type description for ARIA labels (e.g., "file", "command")

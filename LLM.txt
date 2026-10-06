@@ -51,7 +51,7 @@ src/
     interfaces/               # ILogger, IConfigurationService, IAccessibilityService + barrel
   utils/
     logger.ts                 # Logger: LogLevel, LogFormat, LogCategory; output channel
-    cache.ts                  # Cache<T>: TTL + LRU eviction + stats + memoize()
+    cache.ts                  # Cache<T>: TTL + LRU eviction + stats; @memoize() method decorator
     configValidator.ts        # ConfigValidator.validate(); validateConfigValue<T>(); formatValidationErrors()
     pathValidator.ts          # isSafeFilePath(): blocks traversal + dangerous extensions
     metrics.ts                # MetricData, IMetricCollector (interfaces only — implement to collect perf data)
@@ -141,10 +141,10 @@ Non-GENERAL emits `[CATEGORY]` prefix in text format and a `category` field in J
 
 ### Cache<T> (`src/utils/cache.ts`)
 ```typescript
-const cache = createCache<MyData>({ ttl: 60_000, maxSize: 100 });
+const cache = createCache<MyData>({ defaultTTL: 60_000, maxSize: 100 });
 cache.set('key', value);
 cache.get('key');          // MyData | undefined
-cache.memoize('key', () => expensiveCompute());
+// method decorator (not a Cache method): @memoize(ttlMs?, keyGenerator?)
 ```
 
 ### configValidator helpers (`src/utils/configValidator.ts`)
@@ -164,8 +164,8 @@ Blocks `..` traversal, `node_modules`, and dangerous extensions (`.exe`, `.sh`, 
 
 ### accessibilityHelper (`src/utils/accessibilityHelper.ts`)
 ```typescript
-const item = getAccessibleQuickPickItem(label, description, detail);
-const hint = getKeyboardNavigationHint(isEnabled);
+const item = getAccessibleQuickPickItem({ label, description, detail }, { ariaLabel: 'Save all' });
+const hint = getKeyboardNavigationHint(true, currentIndex, totalItems);
 ```
 
 ---
@@ -177,7 +177,7 @@ const hint = getKeyboardNavigationHint(isEnabled);
 3. **Implement the service** in `src/services/myService.ts`:
    - `class MyService implements IMyService`
    - `static create(logger: ILogger): MyService` factory method
-   - Singleton pattern; no `new MyService()` outside container.
+   - DI-only: instances come from the `create()` factory registered in the container; never call `new MyService()` outside the container.
 4. **Register** in `src/di/container.ts` `initializeContainer()`:
    `container.registerSingleton(TYPES.MyService, () => MyService.create(logger));`
 5. **Create the command** by copying `src/commands/HelloWorldCommand.ts` → `src/commands/MyFeatureCommand.ts`:

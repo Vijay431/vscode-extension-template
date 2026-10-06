@@ -2,22 +2,9 @@ import * as vscode from 'vscode';
 
 import type { IAccessibilityService, VerbosityLevel } from '../di/interfaces/IAccessibilityService';
 import type { ILogger } from '../di/interfaces/ILogger';
-import { Logger } from '../utils/logger';
+import type { AccessibilityConfig } from '../types/config';
 
-/**
- * Accessibility verbosity levels for screen reader announcements
- * @deprecated Use VerbosityLevel from IAccessibilityService instead
- */
-export type AccessibilityVerbosity = 'minimal' | 'normal' | 'verbose';
-
-/**
- * Accessibility configuration interface
- */
-export interface AccessibilityConfig {
-  verbosity: AccessibilityVerbosity;
-  screenReaderMode: boolean;
-  keyboardNavigation: boolean;
-}
+export type { AccessibilityConfig } from '../types/config';
 
 /**
  * Accessibility Service
@@ -31,7 +18,7 @@ export interface AccessibilityConfig {
  * @description
  * This service handles all accessibility-related functionality including:
  * - Reading and caching accessibility configuration
- * - Providing screen reader announcements via VS Code's accessibility API
+ * - Providing screen reader announcements via transient status bar messages
  * - Centralizing accessibility logic for consistent behavior
  * - Supporting verbosity levels for different user needs
  *
@@ -48,12 +35,8 @@ export interface AccessibilityConfig {
  *
  * @example
  * ```typescript
- * // Using DI (recommended)
- * constructor(@inject(TYPES.AccessibilityService) private a11y: IAccessibilityService) {}
- *
- * // Using singleton (legacy)
- * const a11yService = AccessibilityService.getInstance();
- * await a11yService.announce('File saved successfully');
+ * const a11y = getService<IAccessibilityService>(TYPES.AccessibilityService);
+ * await a11y.announce('File saved successfully');
  * ```
  *
  * @category Accessibility
@@ -62,7 +45,6 @@ export interface AccessibilityConfig {
  * @since 2.1.0
  */
 export class AccessibilityService implements IAccessibilityService {
-  private static instance: AccessibilityService | undefined;
   private logger: ILogger;
   private config: AccessibilityConfig;
   private configChangeListener: vscode.Disposable | undefined;
@@ -71,16 +53,6 @@ export class AccessibilityService implements IAccessibilityService {
     this.logger = logger;
     this.config = this.loadConfiguration();
     this.watchConfigurationChanges();
-  }
-
-  /**
-   * Get the singleton instance (legacy pattern)
-   *
-   * @deprecated Use DI injection instead
-   */
-  public static getInstance(): AccessibilityService {
-    AccessibilityService.instance ??= new AccessibilityService(Logger.getInstance());
-    return AccessibilityService.instance;
   }
 
   /**
@@ -111,10 +83,10 @@ export class AccessibilityService implements IAccessibilityService {
   /**
    * Get verbosity setting with validation
    */
-  private getVerbosityConfig(config: vscode.WorkspaceConfiguration): AccessibilityVerbosity {
+  private getVerbosityConfig(config: vscode.WorkspaceConfiguration): VerbosityLevel {
     const verbosity = config.get<string>('verbosity', 'normal');
     if (this.isValidVerbosity(verbosity)) {
-      return verbosity as AccessibilityVerbosity;
+      return verbosity as VerbosityLevel;
     }
     return 'normal';
   }
@@ -122,7 +94,7 @@ export class AccessibilityService implements IAccessibilityService {
   /**
    * Validate verbosity value
    */
-  private isValidVerbosity(value: string): value is AccessibilityVerbosity {
+  private isValidVerbosity(value: string): value is VerbosityLevel {
     return ['minimal', 'normal', 'verbose'].includes(value);
   }
 
@@ -149,14 +121,14 @@ export class AccessibilityService implements IAccessibilityService {
    * Get current verbosity level
    */
   public getVerbosity(): VerbosityLevel {
-    return this.config.verbosity as VerbosityLevel;
+    return this.config.verbosity;
   }
 
   /**
    * Set the verbosity level
    */
   public setVerbosity(verbosity: VerbosityLevel): void {
-    this.config.verbosity = verbosity as AccessibilityVerbosity;
+    this.config.verbosity = verbosity;
   }
 
   /**
@@ -167,34 +139,8 @@ export class AccessibilityService implements IAccessibilityService {
   }
 
   /**
-   * Check if keyboard navigation hints should be shown
-   */
-  public showKeyboardNavigationInternal(): boolean {
-    return this.config.keyboardNavigation;
-  }
-
-  /**
-   * Check if an announcement should be made based on verbosity level
-   */
-  public shouldAnnounceInternal(level: 'minimal' | 'normal' | 'verbose'): boolean {
-    const verbosity = this.config.verbosity;
-
-    // Minimal mode only announces minimal level
-    if (verbosity === 'minimal' && level !== 'minimal') {
-      return false;
-    }
-
-    // Normal mode announces minimal and normal
-    if (verbosity === 'normal' && level === 'verbose') {
-      return false;
-    }
-
-    return true;
-  }
-
-  /**
    * Announce a message to screen readers
-   * Uses VS Code's accessibility API for proper screen reader support
+   * Shows a transient status bar message; screen-reader behaviour depends on user settings
    *
    * @param message - The message to announce
    * @param verbosity - The importance level (minimal, normal, verbose)
@@ -207,13 +153,10 @@ export class AccessibilityService implements IAccessibilityService {
     }
 
     try {
-      // Use VS Code's accessibility API for screen reader announcements
-      const vsCodeAny = vscode as unknown as {
-        accessibility?: { announce(msg: string): Promise<void> };
-      };
-      if (vsCodeAny.accessibility) {
-        await vsCodeAny.accessibility.announce(message);
-      }
+      // VS Code has no public announce API. Status bar messages are exposed to
+      // assistive technology, but whether a screen reader reads them depends on
+      // the user's settings (e.g. accessibility.verbosity.*, screen reader mode).
+      vscode.window.setStatusBarMessage(message, 3000);
 
       this.logger.debug(`Accessibility announcement: ${message}`);
     } catch (error) {
@@ -241,6 +184,9 @@ export class AccessibilityService implements IAccessibilityService {
    * Announce progress for long-running operations
    */
   public async announceProgress(operation: string, current: number, total: number): Promise<void> {
+    if (total <= 0) {
+      return;
+    }
     const percentage = Math.round((current / total) * 100);
     const message = `${operation}: ${current} of ${total} complete, ${percentage}%`;
     await this.announce(message, 'verbose');
@@ -257,7 +203,9 @@ export class AccessibilityService implements IAccessibilityService {
   }
 
   /**
-   * Create an accessible QuickPick item with proper labeling
+   * Create an accessible QuickPick item with proper labeling.
+   * Note: VS Code does not currently honor `ariaLabel`/`ariaDescription` on
+   * QuickPick items; the fields are kept for forward compatibility.
    */
   public createAccessibleQuickPickItem<T extends vscode.QuickPickItem>(
     item: T,
@@ -278,18 +226,9 @@ export class AccessibilityService implements IAccessibilityService {
   }
 
   /**
-   * Legacy compatibility methods
-   * @deprecated Use interface methods instead
+   * Check if an announcement should be made based on verbosity level
    */
-  public isScreenReaderMode(): boolean {
-    return this.isScreenReaderEnabled();
-  }
-
-  public showKeyboardNavigation(): boolean {
-    return this.config.keyboardNavigation;
-  }
-
-  public shouldAnnounce(level: 'minimal' | 'normal' | 'verbose'): boolean {
+  private shouldAnnounce(level: VerbosityLevel): boolean {
     const verbosity = this.config.verbosity;
 
     // Minimal mode only announces minimal level

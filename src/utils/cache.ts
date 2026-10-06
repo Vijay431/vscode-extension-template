@@ -94,7 +94,7 @@ export class Cache<T> {
     expired: 0,
     evicted: 0,
   };
-  private cleanupTimer?: NodeJS.Timeout;
+  private cleanupTimer: NodeJS.Timeout | undefined;
 
   constructor(config: Partial<CacheConfig> = {}) {
     this.config = { ...DEFAULT_CACHE_CONFIG, ...config };
@@ -107,6 +107,8 @@ export class Cache<T> {
         },
         Math.min(this.config.defaultTTL, 60000),
       ); // Cleanup at most every minute
+      // Do not keep the process alive just for cache cleanup
+      this.cleanupTimer.unref();
     }
   }
 
@@ -122,7 +124,7 @@ export class Cache<T> {
     const entryTTL = ttl ?? this.config.defaultTTL;
 
     // Enforce size limit by evicting least recently used entries
-    if (this.config.maxSize > 0 && this.cache.size >= this.config.maxSize) {
+    if (this.config.maxSize > 0 && !this.cache.has(key) && this.cache.size >= this.config.maxSize) {
       this.evictLRU();
     }
 
@@ -338,13 +340,12 @@ export function memoize(
     descriptor.value = function (...args: unknown[]) {
       // Generate cache key
       const cacheKey = keyGenerator
-        ? keyGenerator(args)
+        ? keyGenerator(...args)
         : `${_propertyKey.toString()}:${JSON.stringify(args)}`;
 
-      // Check cache
-      const cached = cache.get(cacheKey);
-      if (cached !== undefined) {
-        return cached;
+      // Check cache (has() so cached undefined results are honored)
+      if (cache.has(cacheKey)) {
+        return cache.get(cacheKey);
       }
 
       // Call original and cache result

@@ -115,7 +115,7 @@ export abstract class BaseCommandHandler implements ICommandHandler {
    */
   protected hasSelection(): boolean {
     const editor = this.getActiveEditor();
-    return !editor?.selection.isEmpty;
+    return editor !== undefined && !editor.selection.isEmpty;
   }
 
   /**
