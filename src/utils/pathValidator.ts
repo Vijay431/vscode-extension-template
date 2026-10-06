@@ -7,7 +7,8 @@ export function isSafeFilePath(filePath: string): boolean {
 
   const normalizedPath = path.normalize(filePath);
 
-  if (normalizedPath.includes('..') || normalizedPath.includes('node_modules')) {
+  const segments = normalizedPath.split(/[/\\]/);
+  if (segments.includes('..') || segments.includes('node_modules')) {
     return false;
   }
 

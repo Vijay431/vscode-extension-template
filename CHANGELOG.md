@@ -20,8 +20,30 @@ HOW TO MAINTAIN THIS FILE
 
 ### Added
 
+- `Template Check` workflow that typechecks, lints, tests and builds the template repository itself; `install.sh` removes it from generated projects.
+- `install.sh` now runs on macOS's bash 3.2, and `TEMPLATE_REPO_URL` / `TEMPLATE_BRANCH` can be overridden via environment.
+- Unit tests for the DI container, logger, configuration and accessibility services, command handlers/registry, cache, and validators.
+
 ### Changed
 
+- `install.sh` checks for Node.js 22.12+ (24 recommended) before bootstrapping, and its leftover-token check now also covers `.txt`, `.mjs` and `.cjs` files.
+- Services are now resolved only through the DI container; `ExtensionManager` no longer builds its own `Logger`/`ConfigurationService`.
+- A command that returns `{ success: false }` now shows its message to the user; handlers can expose an optional `dispose()`.
+- Development toolchain targets Node.js 24 (`engines.node`, `.nvmrc`, CI, docs). The bundled extension is built with esbuild `target: node18` and has no runtime dependencies, so it runs on Node.js 18+.
+- Bumped dev dependencies (vitest 4, @types/node 24, ovsx 1, concurrently 10, typescript-eslint 8.60, lint-staged 17.0.6, commitlint 21.0.2, eslint-plugin-prettier 5.5.6).
+
+### Removed
+
+- `getInstance()` singletons on `Logger`, `ConfigurationService` and `AccessibilityService`, and deprecated `AccessibilityService` helpers (`shouldAnnounceInternal`, `showKeyboardNavigationInternal`, `isScreenReaderMode`).
+
 ### Fixed
+
+- `install.sh` failed on bash 3.2 (`${var,,}` and `mapfile`).
+- `BaseCommandHandler.hasSelection()` returned `true` with no active editor.
+- `memoize` ignored a custom key generator's arguments and re-ran functions that returned `undefined`.
+- `Cache` evicted an unrelated entry when overwriting a key at capacity, and its cleanup timer could keep the process alive.
+- `isSafeFilePath` rejected names containing `..` (e.g. `a..b.txt`); it now blocks only `..` path segments.
+- `Logger` dropped falsy data (`0`, `''`, `false`); `announceProgress` guards `total <= 0`.
+- Logger no longer disposed twice; activation failure shows one error toast instead of two.
 
 [Unreleased]: {{REPO_URL}}/commits/main

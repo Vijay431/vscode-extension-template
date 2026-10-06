@@ -1,5 +1,3 @@
-import * as vscode from 'vscode';
-
 import type { IAccessibilityService } from '../di/interfaces/IAccessibilityService';
 import type { ILogger } from '../di/interfaces/ILogger';
 
@@ -23,7 +21,7 @@ export class HelloWorldCommand extends BaseCommandHandler {
     this.logInfo('Executing Hello World');
 
     const message = 'Hello from {{DISPLAY_NAME}}!';
-    vscode.window.showInformationMessage(message);
+    this.showInfo(message);
 
     await this.announceSuccess('Hello World', message);
 
