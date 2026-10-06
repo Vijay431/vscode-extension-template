@@ -22,7 +22,7 @@ By participating in this project, you are expected to uphold our [Code of Conduc
 ### Prerequisites
 
 - [Node.js](https://nodejs.org/) (version 22+ required, 22, 24, and 26 supported)
-- [PNPM](https://pnpm.io/) (install with `npm install -g pnpm`)
+- [PNPM](https://pnpm.io/) 11+ (enable with `corepack enable pnpm`, or see https://pnpm.io/installation)
 - [Visual Studio Code](https://code.visualstudio.com/) (for development and testing)
 - [Git](https://git-scm.com/)
 
