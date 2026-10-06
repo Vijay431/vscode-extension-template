@@ -20,9 +20,12 @@ export class CommandsManager {
   private registry: CommandRegistry | undefined;
   private disposables: vscode.Disposable[] = [];
 
-  // Disposables are owned solely by this manager; ExtensionManager disposes it.
+  // Disposables are also registered on context.subscriptions as soon as created;
+  // dispose() is idempotent.
   public async initialize(context: vscode.ExtensionContext): Promise<void> {
     this.registry = new CommandRegistry(context);
+    // Register with the context immediately so a later failure cannot leak.
+    context.subscriptions.push({ dispose: () => this.dispose() });
 
     const logger = getService<ILogger>(TYPES.Logger);
     const a11y = getService<IAccessibilityService>(TYPES.AccessibilityService);
@@ -35,23 +38,29 @@ export class CommandsManager {
     });
 
     // Register enable / disable commands
-    this.disposables.push(
-      vscode.commands.registerCommand('{{EXTENSION_ID}}.enable', async () => {
-        await vscode.workspace
-          .getConfiguration('{{EXTENSION_ID}}')
-          .update('enabled', true, vscode.ConfigurationTarget.Global);
-      }),
-      vscode.commands.registerCommand('{{EXTENSION_ID}}.disable', async () => {
-        await vscode.workspace
-          .getConfiguration('{{EXTENSION_ID}}')
-          .update('enabled', false, vscode.ConfigurationTarget.Global);
-      }),
-    );
+    const enable = vscode.commands.registerCommand('{{EXTENSION_ID}}.enable', async () => {
+      await vscode.workspace
+        .getConfiguration('{{EXTENSION_ID}}')
+        .update('enabled', true, vscode.ConfigurationTarget.Global);
+    });
+    this.disposables.push(enable);
+    context.subscriptions.push(enable);
+
+    const disable = vscode.commands.registerCommand('{{EXTENSION_ID}}.disable', async () => {
+      await vscode.workspace
+        .getConfiguration('{{EXTENSION_ID}}')
+        .update('enabled', false, vscode.ConfigurationTarget.Global);
+    });
+    this.disposables.push(disable);
+    context.subscriptions.push(disable);
   }
 
   public dispose(): void {
-    this.registry?.dispose();
-    for (const d of this.disposables) d.dispose();
+    const registry = this.registry;
+    const disposables = this.disposables;
+    this.registry = undefined;
     this.disposables = [];
+    registry?.dispose();
+    for (const d of disposables) d.dispose();
   }
 }
