@@ -175,7 +175,7 @@
     "eslint-plugin-n": "^18.0.1",
     "eslint-plugin-prettier": "^5.5.6",
     "eslint-plugin-promise": "^7.3.0",
-    "eslint-plugin-security": "^4.0.0",
+    "eslint-plugin-security": "^4.2.0",
     "glob": "^13.0.6",
     "husky": "^9.1.7",
     "lint-staged": "^17.0.6",
