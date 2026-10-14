@@ -117,8 +117,8 @@ pnpm run build             # build extension
 pnpm run watch             # watch mode
 pnpm run test:unit         # run unit tests
 pnpm run test:integration  # run integration tests (requires display)
-pnpm run lint              # ESLint
-pnpm run format            # Prettier
+pnpm run lint              # Biome lint + format check
+pnpm run format            # Biome format
 ```
 
 Press **F5** in VS Code to launch the Extension Development Host.
@@ -127,7 +127,7 @@ Press **F5** in VS Code to launch the Extension Development Host.
 
 | Script                     | Purpose                                                                                                                                                                                                          |
 | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `check-commit-size.sh`     | Enforces ≤ 10 files and ≤ 400 changed lines per staged commit. Invoked by the `pre-commit` Husky hook and the `pr-commit-size` CI job. Accepts `--excludes <file>` to point at a custom exclusion patterns file. |
+| `check-commit-size.sh`     | Enforces ≤ 10 files and ≤ 400 changed lines per staged commit. Used by the advisory `pr-commit-size` CI job; it is not run by the local `pre-commit` hook. Accepts `--excludes <file>` to point at a custom exclusion patterns file. |
 | `commit-size-excludes.txt` | Glob patterns excluded from the commit size count — lockfiles, generated files, etc. Referenced by `check-commit-size.sh` by default.                                                                            |
 | `convert-encoding.sh`      | Normalizes all tracked text files to UTF-8 encoding and LF line endings. Run manually when files arrive with CRLF or non-UTF-8 encoding.                                                                         |
 

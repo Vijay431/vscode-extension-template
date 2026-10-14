@@ -60,11 +60,11 @@ pnpm install
 # Build the extension (requires Node.js 24+)
 pnpm run build
 
-# Run ESLint — uses tsconfig.eslint.json for type-aware rules
+# Lint and format check with Biome
 pnpm run lint
 ```
 
-> **Note on `tsconfig.eslint.json`**: The project uses a dedicated `tsconfig.eslint.json` (extending `tsconfig.json`) for ESLint's type-aware rules. It includes `src/`, `scripts/`, and `esbuild.config.ts` with `noEmit: true` so linting never affects the production build output.
+> **Note**: Biome does not do type-aware linting. Type errors are caught by `pnpm run typecheck` (`tsc --noEmit`). See [docs/biome-migration.md](docs/biome-migration.md) for the ESLint rules that were not carried over.
 
 ### 4. Launch Development Environment
 
@@ -77,7 +77,7 @@ pnpm run lint
 ```bash
 pnpm run watch          # Watch mode for active development
 pnpm run package        # Production build + VSIX packaging
-pnpm run format         # Format code with Prettier
+pnpm run format         # Format code with Biome
 pnpm run test:unit      # Run unit tests (Vitest)
 pnpm run test:integration  # Run integration tests (requires display/xvfb on Linux)
 pnpm run system:verify  # Verify Husky hooks are installed
@@ -280,11 +280,11 @@ pnpm run test:unit
 - Enable **strict mode** compliance
 - Use **meaningful variable names**
 - Add **JSDoc comments** for public functions
-- Follow **ESLint rules** configured in the project
+- Follow the **Biome rules** configured in `biome.json`
 
 ### Code Formatting
 
-- Use **Prettier** for consistent formatting
+- Use **Biome** for consistent formatting (staged files are fixed on commit)
 - Run `pnpm run format` before committing
 - Use **2 spaces** for indentation
 - Use **semicolons** at line endings
@@ -347,8 +347,7 @@ Contributors are recognized in:
 Helpful extensions for development:
 
 - **TypeScript Importer** - Auto-import management
-- **ESLint** - Code linting
-- **Prettier** - Code formatting
+- **Biome** - Linting and formatting
 - **GitLens** - Git integration
 
 ### Debugging

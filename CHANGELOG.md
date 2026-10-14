@@ -35,6 +35,7 @@ HOW TO MAINTAIN THIS FILE
 
 ### Removed
 
+- ESLint and Prettier (and their plugins/configs), replaced by Biome. See `docs/biome-migration.md` for the rules that were not carried over.
 - `getInstance()` singletons on `Logger`, `ConfigurationService` and `AccessibilityService`, and deprecated `AccessibilityService` helpers (`shouldAnnounceInternal`, `showKeyboardNavigationInternal`, `isScreenReaderMode`).
 
 ### Fixed
