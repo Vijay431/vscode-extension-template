@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { DIContainer, container, getService, initializeContainer } from '../../src/di/container';
+import { container, DIContainer, getService, initializeContainer } from '../../src/di/container';
 import type { IAccessibilityService } from '../../src/di/interfaces/IAccessibilityService';
 import type { IConfigurationService } from '../../src/di/interfaces/IConfigurationService';
 import type { ILogger } from '../../src/di/interfaces/ILogger';

@@ -1,7 +1,7 @@
-export type { ILogger } from './ILogger';
-export type { IConfigurationService } from './IConfigurationService';
 export type {
+  AnnouncementOptions,
   IAccessibilityService,
   VerbosityLevel,
-  AnnouncementOptions,
 } from './IAccessibilityService';
+export type { IConfigurationService } from './IConfigurationService';
+export type { ILogger } from './ILogger';

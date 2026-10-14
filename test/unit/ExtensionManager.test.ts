@@ -1,5 +1,5 @@
-import * as vscode from 'vscode';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import * as vscode from 'vscode';
 
 import { container } from '../../src/di/container';
 import { TYPES } from '../../src/di/types';

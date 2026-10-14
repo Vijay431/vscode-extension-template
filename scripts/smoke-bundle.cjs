@@ -1,5 +1,4 @@
 'use strict';
-/* eslint-disable */
 // Loads dist/extension.js with a stubbed `vscode` module and exercises activate/deactivate.
 const Module = require('module');
 const path = require('path');
@@ -35,7 +34,7 @@ class EventEmitter {
     };
   }
   fire(e) {
-    this.listeners.forEach((l) => l(e));
+    for (const l of this.listeners) l(e);
   }
   dispose() {
     this.listeners = [];

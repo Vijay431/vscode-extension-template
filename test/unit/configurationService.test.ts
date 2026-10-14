@@ -1,5 +1,5 @@
-import * as vscode from 'vscode';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import * as vscode from 'vscode';
 
 import type { ILogger } from '../../src/di/interfaces/ILogger';
 import { ConfigurationService } from '../../src/services/configurationService';
