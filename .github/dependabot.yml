@@ -4,10 +4,13 @@ updates:
     directory: '/'
     schedule:
       interval: 'weekly'
+      day: 'sunday'
+      time: '08:00'
+      timezone: 'Asia/Kolkata'
     open-pull-requests-limit: 10
-    versioning-strategy: increase
+    versioning-strategy: auto
     labels:
-      - 'dependencies'
+      - 'dependabot'
     commit-message:
       prefix: 'chore'
       include: 'scope'
@@ -15,7 +18,11 @@ updates:
   - package-ecosystem: 'github-actions'
     directory: '/'
     schedule:
-      interval: 'monthly'
+      interval: 'weekly'
+      day: 'sunday'
+      time: '08:00'
+      timezone: 'Asia/Kolkata'
     labels:
-      - 'github-actions'
-      - 'dependencies'
+      - 'dependabot'
+    commit-message:
+      prefix: 'ci'

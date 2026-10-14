@@ -160,6 +160,9 @@ jobs:
       - name: Run Security Audit
         run: pnpm audit
 
+      - name: Check for Prerelease Dependencies
+        run: pnpm run check:prerelease
+
   dependency-review:
     name: Dependency Review
     runs-on: ubuntu-latest

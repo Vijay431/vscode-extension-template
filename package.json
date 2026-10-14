@@ -141,6 +141,7 @@
     "lint:md:fix": "markdownlint-cli2 --fix \"**/*.md\"",
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.test.json",
     "smoke:bundle": "node scripts/smoke-bundle.cjs",
+    "check:prerelease": "node scripts/check-prerelease.cjs",
     "lint-staged": "lint-staged",
     "format": "biome format --write .",
     "system:verify": "husky"

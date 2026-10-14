@@ -37,6 +37,9 @@ jobs:
       - name: Security Audit
         run: pnpm audit
 
+      - name: Check for Prerelease Dependencies
+        run: pnpm run check:prerelease
+
       - name: Typecheck
         run: pnpm run typecheck
 

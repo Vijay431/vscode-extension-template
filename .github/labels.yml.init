@@ -10,12 +10,9 @@
 - name: documentation
   color: 0075ca
   description: Documentation updates.
-- name: dependencies
+- name: dependabot
   color: 0366d6
-  description: Dependency updates.
-- name: github-actions
-  color: 000000
-  description: GitHub Actions workflow updates.
+  description: Automated dependency updates.
 - name: chore
   color: cfd3d7
   description: Maintenance work.

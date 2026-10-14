@@ -19,8 +19,7 @@ changelog:
     - title: Maintenance
       labels:
         - chore
-        - dependencies
-        - github-actions
+        - dependabot
     - title: Other Changes
       labels:
         - '*'
