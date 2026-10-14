@@ -54,3 +54,70 @@ jobs:
 
       - name: Production Build
         run: pnpm exec tsx esbuild.config.ts --production
+
+  commitlint:
+    name: Commit messages
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Install PNPM
+        uses: pnpm/action-setup@v4
+        with:
+          version: 12
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24.x'
+          cache: pnpm
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint PR Commits
+        run: pnpm exec commitlint --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }}
+
+      - name: Lint PR Title
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: printf '%s\n' "$PR_TITLE" | pnpm exec commitlint
+
+  bootstrap:
+    name: Bootstrap generated project
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24.x'
+
+      - name: Syntax-check install.sh
+        run: bash -n install.sh
+
+      - name: Shellcheck install.sh
+        run: shellcheck install.sh
+
+      - name: Configure git identity
+        run: |
+          git config --global user.name "CI"
+          git config --global user.email "ci@example.com"
+
+      - name: Run install.sh non-interactively
+        env:
+          PROJECT_ID: ci-extension
+          TEMPLATE_REPO_URL: ${{ github.workspace }}
+          TEMPLATE_BRANCH: ${{ github.head_ref || github.ref_name }}
+        working-directory: ${{ runner.temp }}
+        run: bash "$GITHUB_WORKSPACE/install.sh"
+
+      - name: Lint, typecheck and test generated project
+        working-directory: ${{ runner.temp }}/ci-extension
+        run: pnpm lint && pnpm typecheck && pnpm test:unit

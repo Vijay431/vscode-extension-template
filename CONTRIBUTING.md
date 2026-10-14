@@ -145,7 +145,7 @@ Examples:
 
 ### Commit Standards
 
-Commit messages and size are enforced automatically via git hooks (commitlint + husky) and CI.
+Commit messages are enforced by the `commit-msg` hook (commitlint, configured in `commitlint.config.mjs`) and by a CI job that lints every PR commit and the PR title. Style is auto-fixed on commit by `lint-staged`; commit size is checked as an advisory by CI only.
 
 #### Message Format (enforced by `commit-msg` hook)
 
@@ -169,7 +169,7 @@ type(scope): short description
 
 Breaking changes: append `!` after the type — `feat!: remove deprecated API`
 
-#### Commit Size Limits (enforced by `pre-commit` hook + CI)
+#### Commit Size Limits (advisory, reported by CI)
 
 | Limit                        | Value   | Rationale                            |
 | ---------------------------- | ------- | ------------------------------------ |
