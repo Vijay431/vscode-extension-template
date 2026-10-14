@@ -37,6 +37,9 @@ jobs:
       - name: Lint (Biome)
         run: pnpm run lint
 
+      - name: Lint Markdown
+        run: pnpm run lint:md
+
       - name: Typecheck
         run: pnpm run typecheck
 

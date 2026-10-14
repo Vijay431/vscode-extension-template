@@ -44,6 +44,7 @@ this.logInfo/logDebug/logWarn/logError('message', data?)
 3. Inject additional services via constructor (e.g. `IMyService`).
 4. Implement `execute()` using service methods; return `this.success()` or `this.error()`.
 5. Register in `src/managers/CommandsManager.ts`:
+
    ```typescript
    this.registry.registerCommand({
      id: '{{EXTENSION_ID}}.myFeature',
@@ -52,6 +53,7 @@ this.logInfo/logDebug/logWarn/logError('message', data?)
      handlerFactory: () => new MyFeatureCommand(logger, a11y, myService),
    });
    ```
+
 6. Add to `package.json` `contributes.commands` (and `contributes.menus` if needed).
 7. Add `test/unit/MyFeatureCommand.test.ts` (Vitest) and `test/suite/myFeature.test.ts` (Mocha).
 

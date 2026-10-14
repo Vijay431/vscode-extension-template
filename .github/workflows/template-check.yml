@@ -43,6 +43,9 @@ jobs:
       - name: Lint
         run: pnpm run lint
 
+      - name: Lint Markdown
+        run: pnpm run lint:md
+
       - name: Unit Tests
         run: pnpm run test:unit
 

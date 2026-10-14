@@ -22,7 +22,7 @@ By participating in this project, you are expected to uphold our [Code of Conduc
 ### Prerequisites
 
 - [Node.js](https://nodejs.org/) (version 24+ required for development; the built extension targets Node.js 18+)
-- [PNPM](https://pnpm.io/) 11+ (enable with `corepack enable pnpm`, or see https://pnpm.io/installation)
+- [PNPM](https://pnpm.io/) 11+ (enable with `corepack enable pnpm`, or see <https://pnpm.io/installation>)
 - [Visual Studio Code](https://code.visualstudio.com/) (for development and testing)
 - [Git](https://git-scm.com/)
 
@@ -120,7 +120,7 @@ Examples:
 
 We use [Conventional Commits](https://www.conventionalcommits.org/) format:
 
-```
+```text
 type(scope): description
 
 body (optional)
@@ -149,7 +149,7 @@ Commit messages and size are enforced automatically via git hooks (commitlint + 
 
 #### Message Format (enforced by `commit-msg` hook)
 
-```
+```text
 type(scope): short description
 ```
 
@@ -230,7 +230,7 @@ Workflows and most other `.github/` files ship as `*.init` placeholders in the t
 
 {{DISPLAY_NAME}} follows a service-oriented architecture:
 
-```
+```text
 src/
 ├── extension.ts              # Entry point
 ├── managers/

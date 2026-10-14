@@ -5,7 +5,7 @@ Each subdirectory carries its own `README.md` explaining conventions and how to 
 
 ## Layered model
 
-```
+```text
 extension.ts
   └─ initializeContainer()          ← wires all service singletons into the DI container
   └─ ExtensionManager.activate()

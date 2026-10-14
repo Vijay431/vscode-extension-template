@@ -29,16 +29,20 @@ Consumers depend on the interface, never the concrete class.
 ## How to add a new interface
 
 1. Create `IMyService.ts`:
+
    ```typescript
    export interface IMyService {
      doSomething(input: string): Promise<string>;
      dispose(): void;
    }
    ```
+
 2. Export from `index.ts`:
+
    ```typescript
    export type { IMyService } from './IMyService';
    ```
+
 3. Add a `TYPES` token in `src/di/types.ts`.
 4. Implement `MyService implements IMyService` in `src/services/`.
 5. Register in `src/di/container.ts`.
