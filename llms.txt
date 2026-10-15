@@ -193,7 +193,7 @@ const hint = getKeyboardNavigationHint(true, currentIndex, totalItems);
 
 ## 5. Hard constraints (do not violate)
 
-- **Package manager:** pnpm by default; npm/yarn allowed via `install.sh` provider choice.
+- **Package manager:** pnpm only (enforced via `devEngines` in package.json). Never add npm/yarn lockfiles or `npx`; use `pnpm exec` / `pnpm dlx`.
 - **Zero runtime deps:** nothing in `dependencies`; everything in `devDependencies`.
 - **No browser globals:** `window`, `document`, `fetch`, `localStorage` are forbidden.
 - **TypeScript strict mode:** no `any`, no unused locals, no unhandled rejections; do not weaken `tsconfig.json`.
@@ -237,7 +237,7 @@ placeholders in the template so they trigger no automation before bootstrap. Exc
 step required.
 
 After bootstrap the repository has live workflows for:
-CI jobs: lint → unit tests → integration tests → cross-platform build → VSIX release → dual publish.
+CI jobs: lint (Biome) → unit tests → integration tests → cross-platform build → VSIX release → dual publish.
 Required repository secrets: `VSCE_PAT`, `OVSX_PAT`.
 
 ---

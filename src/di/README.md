@@ -32,18 +32,22 @@ const child = container.createChild();                    // inherits parent reg
 ## How to add a new service
 
 1. Add a token in `types.ts`:
+
    ```typescript
    MyService: Symbol.for('MyService'),
    ```
+
 2. Create the interface `di/interfaces/IMyService.ts` (see `interfaces/README.md`).
 3. Export it from `di/interfaces/index.ts`.
 4. Implement the service in `src/services/myService.ts`.
 5. Register in `initializeContainer()` in `container.ts`:
+
    ```typescript
    container.registerSingleton(TYPES.MyService, () =>
      MyService.create(container.get<ILogger>(TYPES.Logger))
    );
    ```
+
 6. Inject where needed: `container.get<IMyService>(TYPES.MyService)`.
 
 ## Reference architecture

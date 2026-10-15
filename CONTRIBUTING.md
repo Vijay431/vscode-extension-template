@@ -22,7 +22,7 @@ By participating in this project, you are expected to uphold our [Code of Conduc
 ### Prerequisites
 
 - [Node.js](https://nodejs.org/) (version 24+ required for development; the built extension targets Node.js 18+)
-- [PNPM](https://pnpm.io/) (install with `npm install -g pnpm`)
+- [PNPM](https://pnpm.io/) 11+ (enable with `corepack enable pnpm`, or see <https://pnpm.io/installation>)
 - [Visual Studio Code](https://code.visualstudio.com/) (for development and testing)
 - [Git](https://git-scm.com/)
 
@@ -60,11 +60,11 @@ pnpm install
 # Build the extension (requires Node.js 24+)
 pnpm run build
 
-# Run ESLint — uses tsconfig.eslint.json for type-aware rules
+# Lint and format check with Biome
 pnpm run lint
 ```
 
-> **Note on `tsconfig.eslint.json`**: The project uses a dedicated `tsconfig.eslint.json` (extending `tsconfig.json`) for ESLint's type-aware rules. It includes `src/`, `scripts/`, and `esbuild.config.ts` with `noEmit: true` so linting never affects the production build output.
+> **Note**: Biome does not do type-aware linting. Type errors are caught by `pnpm run typecheck` (`tsc --noEmit`). See [docs/biome-migration.md](docs/biome-migration.md) for the ESLint rules that were not carried over.
 
 ### 4. Launch Development Environment
 
@@ -77,7 +77,7 @@ pnpm run lint
 ```bash
 pnpm run watch          # Watch mode for active development
 pnpm run package        # Production build + VSIX packaging
-pnpm run format         # Format code with Prettier
+pnpm run format         # Format code with Biome
 pnpm run test:unit      # Run unit tests (Vitest)
 pnpm run test:integration  # Run integration tests (requires display/xvfb on Linux)
 pnpm run system:verify  # Verify Husky hooks are installed
@@ -87,11 +87,11 @@ pnpm run system:verify  # Verify Husky hooks are installed
 
 The project has two test layers:
 
-| Layer       | Command                     | Framework                       | What's covered                                                     |
-| ----------- | --------------------------- | ------------------------------- | ------------------------------------------------------------------ |
-| Unit        | `pnpm run test:unit`        | Vitest                          | Infrastructure utilities and services with mocked VS Code API      |
-| Unit (cov)  | `pnpm run test:unit:coverage` | Vitest + v8                  | Same as above; outputs `coverage/lcov.info` for Codecov            |
-| Integration | `pnpm run test:integration` | Mocha + `@vscode/test-electron` | Feature-level tests, end-to-end in a real VS Code instance        |
+| Layer       | Command                       | Framework                       | What's covered                                                |
+| ----------- | ----------------------------- | ------------------------------- | ------------------------------------------------------------- |
+| Unit        | `pnpm run test:unit`          | Vitest                          | Infrastructure utilities and services with mocked VS Code API |
+| Unit (cov)  | `pnpm run test:unit:coverage` | Vitest + v8                     | Same as above; outputs `coverage/lcov.info` for Codecov       |
+| Integration | `pnpm run test:integration`   | Mocha + `@vscode/test-electron` | Feature-level tests, end-to-end in a real VS Code instance    |
 
 **Unit tests** cover: `Cache`, `pathValidator`, `ConfigValidator`, `accessibilityHelper`, and services under `src/services/`.
 
@@ -120,7 +120,7 @@ Examples:
 
 We use [Conventional Commits](https://www.conventionalcommits.org/) format:
 
-```
+```text
 type(scope): description
 
 body (optional)
@@ -145,11 +145,11 @@ Examples:
 
 ### Commit Standards
 
-Commit messages and size are enforced automatically via git hooks (commitlint + husky) and CI.
+Commit messages are enforced by the `commit-msg` hook (commitlint, configured in `commitlint.config.mjs`) and by a CI job that lints every PR commit and the PR title. Style is auto-fixed on commit by `lint-staged`; commit size is checked as an advisory by CI only.
 
 #### Message Format (enforced by `commit-msg` hook)
 
-```
+```text
 type(scope): short description
 ```
 
@@ -169,7 +169,7 @@ type(scope): short description
 
 Breaking changes: append `!` after the type — `feat!: remove deprecated API`
 
-#### Commit Size Limits (enforced by `pre-commit` hook + CI)
+#### Commit Size Limits (advisory, reported by CI)
 
 | Limit                        | Value   | Rationale                            |
 | ---------------------------- | ------- | ------------------------------------ |
@@ -230,7 +230,7 @@ Workflows and most other `.github/` files ship as `*.init` placeholders in the t
 
 {{DISPLAY_NAME}} follows a service-oriented architecture:
 
-```
+```text
 src/
 ├── extension.ts              # Entry point
 ├── managers/
@@ -280,11 +280,11 @@ pnpm run test:unit
 - Enable **strict mode** compliance
 - Use **meaningful variable names**
 - Add **JSDoc comments** for public functions
-- Follow **ESLint rules** configured in the project
+- Follow the **Biome rules** configured in `biome.json`
 
 ### Code Formatting
 
-- Use **Prettier** for consistent formatting
+- Use **Biome** for consistent formatting (staged files are fixed on commit)
 - Run `pnpm run format` before committing
 - Use **2 spaces** for indentation
 - Use **semicolons** at line endings
@@ -347,8 +347,7 @@ Contributors are recognized in:
 Helpful extensions for development:
 
 - **TypeScript Importer** - Auto-import management
-- **ESLint** - Code linting
-- **Prettier** - Code formatting
+- **Biome** - Linting and formatting
 - **GitLens** - Git integration
 
 ### Debugging

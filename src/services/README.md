@@ -34,6 +34,7 @@ registered in the DI container and injected into command handlers via their cons
 1. Add interface `src/di/interfaces/IMyService.ts` (see `interfaces/README.md`).
 2. Add token `src/di/types.ts`: `MyService: Symbol.for('MyService')`.
 3. Implement `src/services/myService.ts`:
+
    ```typescript
    export class MyService implements IMyService {
      private constructor(private readonly logger: ILogger) {}
@@ -44,12 +45,15 @@ registered in the DI container and injected into command handlers via their cons
      public dispose(): void { /* clean up */ }
    }
    ```
+
 4. Register in `src/di/container.ts`:
+
    ```typescript
    container.registerSingleton(TYPES.MyService, () =>
      MyService.create(container.get<ILogger>(TYPES.Logger))
    );
    ```
+
 5. Unit-test in `test/unit/myService.test.ts` (Vitest, mocked vscode).
 
 ## Reference architecture

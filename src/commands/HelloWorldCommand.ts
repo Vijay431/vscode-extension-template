@@ -1,8 +1,7 @@
 import type { IAccessibilityService } from '../di/interfaces/IAccessibilityService';
 import type { ILogger } from '../di/interfaces/ILogger';
-
-import { BaseCommandHandler } from './BaseCommandHandler';
 import type { CommandResult } from './BaseCommandHandler';
+import { BaseCommandHandler } from './BaseCommandHandler';
 
 /**
  * Hello World — the starter command. Copy, rename, and adapt this for every

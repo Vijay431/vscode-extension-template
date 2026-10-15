@@ -7,8 +7,7 @@ find . -type f \
   \( -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.json" \
   -o -name "*.md" -o -name "*.yml" -o -name "*.yaml" \
   -o -name ".gitignore" -o -name ".vscodeignore" -o -name ".editorconfig" \
-  -o -name ".prettierrc" -o -name "package.json" -o -name "tsconfig*.json" \
-  -o -name "eslint*" -o -name ".eslintrc*" \) \
+  -o -name "package.json" -o -name "tsconfig*.json" -o -name "biome.json" \) \
   ! -path "./node_modules/*" \
   ! -path "./.git/*" \
   ! -path "./dist/*" \

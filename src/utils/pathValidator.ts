@@ -1,4 +1,4 @@
-import * as path from 'path';
+import * as path from 'node:path';
 
 export function isSafeFilePath(filePath: string): boolean {
   if (!filePath || typeof filePath !== 'string') {

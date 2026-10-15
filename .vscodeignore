@@ -22,8 +22,7 @@ pnpm-lock.yaml
 .gitignore
 .editorconfig
 .nvmrc
-.prettier*
-eslint*
+biome.json
 tsconfig*.json
 esbuild*
 vitest.config.ts

@@ -1,5 +1,5 @@
-import * as vscode from 'vscode';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import * as vscode from 'vscode';
 
 vi.mock('../../src/di', () => ({
   initializeContainer: vi.fn(async () => {

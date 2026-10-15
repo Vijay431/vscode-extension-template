@@ -26,6 +26,7 @@ Most have no `vscode` dependency and are fully unit-testable without mocks.
 ## Key utilities
 
 ### Logger
+
 ```typescript
 const logger = Logger.create(outputChannel);   // DI factory
 logger.info('message', data, LogCategory.OPERATION);
@@ -33,29 +34,35 @@ logger.error('failed', error);
 logger.setLogFormat(LogFormat.JSON);
 logger.setLogLevel(LogLevel.DEBUG);
 ```
+
 Categories: `GENERAL` (default, no prefix), `PERFORMANCE`, `OPERATION`, `SECURITY`.
 
 ### Cache<T>
+
 ```typescript
 const cache = createCache<MyData>({ defaultTTL: 30_000, maxSize: 200 });
 cache.set('key', value);
 const v = cache.get('key');                    // MyData | undefined
 // memoize is a method decorator: @memoize(ttlMs?, keyGenerator?) on a class method
 ```
+
 Use it to cache expensive lookups (e.g. workspace scans) behind a TTL.
 
 ### validateConfigValue<T>
+
 ```typescript
 const err = validateConfigValue('verbosity', value, ['minimal', 'normal', 'verbose'] as const);
 if (err) logger.warn(formatValidationErrors([err]));
 ```
 
 ### pathValidator
+
 ```typescript
 if (!isSafeFilePath(userProvidedPath)) throw new Error('Unsafe path');
 ```
 
 ### IMetricCollector (implement to measure performance)
+
 ```typescript
 class MyMetrics implements IMetricCollector {
   record(data: MetricData): void { /* store */ }

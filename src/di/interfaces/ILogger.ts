@@ -1,4 +1,4 @@
-import { LogCategory, LogFormat, LogLevel } from '../../utils/logger';
+import type { LogCategory, LogFormat, LogLevel } from '../../utils/logger';
 
 export interface ILogger {
   debug(message: string, data?: unknown, category?: LogCategory): void;

@@ -30,10 +30,12 @@ HOW TO MAINTAIN THIS FILE
 - Services are now resolved only through the DI container; `ExtensionManager` no longer builds its own `Logger`/`ConfigurationService`.
 - A command that returns `{ success: false }` now shows its message to the user; handlers can expose an optional `dispose()`.
 - Development toolchain targets Node.js 24 (`engines.node`, `.nvmrc`, CI, docs). The bundled extension is built with esbuild `target: node18` and has no runtime dependencies, so it runs on Node.js 18+.
+- Bumped dev dependencies (esbuild 0.28.2, ovsx 1.2, mocha 12, @vscode/vsce 4, @vscode/test-electron 3, @commitlint/cli 21.2). `@types/vscode` stays at the `engines.vscode` floor (`^1.111.0`) because `vsce` rejects types newer than the engine.
 - Bumped dev dependencies (vitest 4, @types/node 24, ovsx 1, concurrently 10, typescript-eslint 8.60, lint-staged 17.0.6, commitlint 21.0.2, eslint-plugin-prettier 5.5.6).
 
 ### Removed
 
+- ESLint and Prettier (and their plugins/configs), replaced by Biome. See `docs/biome-migration.md` for the rules that were not carried over.
 - `getInstance()` singletons on `Logger`, `ConfigurationService` and `AccessibilityService`, and deprecated `AccessibilityService` helpers (`shouldAnnounceInternal`, `showKeyboardNavigationInternal`, `isScreenReaderMode`).
 
 ### Fixed

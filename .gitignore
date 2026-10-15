@@ -1,6 +1,10 @@
 # Dependencies
 node_modules/
 
+# Non-pnpm lockfiles
+package-lock.json
+yarn.lock
+
 # Build output
 dist/
 out-test/

@@ -6,42 +6,58 @@ set -euo pipefail
 #
 # Usage:
 #   bash <(curl -fsSL https://raw.githubusercontent.com/Vijay431/vscode-extension-template/main/install.sh)
+#   PROJECT_ID=my-extension bash install.sh        # fully non-interactive
 #
-# Prompts for: project-id, project-name, package manager (pnpm default).
-# Creates ./<project-id>/, clones the template, fills all {{TOKEN}} placeholders,
-# installs dependencies, and exits with "Happy coding!"
+# Clones the template into ./<project-id>/, fills every {{TOKEN}}, installs
+# dependencies and hooks, and makes the first commit.
+#
+# Inputs
+#   Required   Project ID (kebab-case)    prompt, or PROJECT_ID env var
+#   Optional   PROJECT_NAME               default: title-cased Project ID
+#              GITHUB_USERNAME            default: slug of `git config user.name`
+#              PUBLISHER                  default: GITHUB_USERNAME
+#              AUTHOR_NAME, AUTHOR_EMAIL  default: `git config user.name/email`
+#              DESCRIPTION                default: "A VS Code extension."
+#              TEMPLATE_REPO_URL, TEMPLATE_BRANCH   default: this repository, main
+#
+# Prerequisites
+#   Required   git, network access, Node.js matching the template's engines.node
+#   Automatic  pnpm (activated via corepack at the version devEngines pins)
+#
+# Nothing else is asked or required. On failure the partial project directory
+# is removed.
 # ---------------------------------------------------------------------------
 
 TEMPLATE_REPO_URL="${TEMPLATE_REPO_URL:-https://github.com/Vijay431/vscode-extension-template.git}"
 TEMPLATE_BRANCH="${TEMPLATE_BRANCH:-main}"
 
-# ---- helpers ---------------------------------------------------------------
+# ---- failure handling ------------------------------------------------------
 
-prompt_with_default() {
-  local label="$1"
-  local default="$2"
-  local varname="$3"
-  local required="${4:-false}"
+STEP="starting"
+CREATED_DIR=""
+ORIGINAL_PWD="$PWD"
 
-  while true; do
-    if [[ -n "$default" ]]; then
-      printf "  %-22s [%s]: " "$label" "$default"
-    else
-      printf "  %-22s (required): " "$label"
-    fi
-
-    read -r input
-    local value="${input:-$default}"
-
-    if [[ -z "$value" && "$required" == "true" ]]; then
-      echo "    ✗ This field is required." >&2
-      continue
-    fi
-
-    printf -v "$varname" '%s' "$value"
-    break
-  done
+on_exit() {
+  local code=$?
+  [[ $code -eq 0 ]] && return 0
+  trap - EXIT
+  echo "" >&2
+  echo "✗ Failed during: ${STEP} (exit ${code})" >&2
+  cd "$ORIGINAL_PWD" 2>/dev/null || true
+  if [[ -n "$CREATED_DIR" && -d "$CREATED_DIR" ]]; then
+    rm -rf "$CREATED_DIR"
+    echo "  Removed partial ./${CREATED_DIR}" >&2
+  fi
+  exit "$code"
 }
+trap on_exit EXIT
+
+die() {
+  echo "✗ $1" >&2
+  exit 1
+}
+
+# ---- helpers ---------------------------------------------------------------
 
 to_title_case() {
   echo "$1" | sed 's/-/ /g' | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) tolower(substr($i,2)); print}'
@@ -75,159 +91,109 @@ sed_rhs_escape() {
   printf '%s' "$1" | sed -e 's/[\\&|]/\\&/g'
 }
 
-setup_provider() {
-  local provider="$1"
-
-  if [[ "$provider" == "npm" ]]; then
-    if ! command -v npm &>/dev/null; then
-      echo "✗ npm not found. Install Node.js from https://nodejs.org/ and re-run." >&2
-      exit 1
-    fi
-    return 0
-  fi
-
-  # pnpm or yarn — try corepack first (ships with Node >=16)
-  if command -v "$provider" &>/dev/null; then
-    return 0
-  fi
-
-  if command -v corepack &>/dev/null; then
-    echo "  Setting up $provider via corepack…"
-    corepack enable "$provider" 2>/dev/null || true
-    corepack prepare "${provider}@latest" --activate 2>/dev/null || true
-    if command -v "$provider" &>/dev/null; then
-      return 0
-    fi
-  fi
-
-  echo "✗ $provider not found." >&2
-  echo "  Install it with: npm install -g $provider" >&2
-  exit 1
+# Read a string field from the cloned package.json (e.g. engines.node).
+pkg_field() {
+  node -p "(() => { try { return $1 ?? ''; } catch { return ''; } })()" 2>/dev/null || true
 }
 
-# ---- preflight -------------------------------------------------------------
+# ---- preflight (before anything is created) --------------------------------
 
-if ! command -v git &>/dev/null; then
-  echo "✗ git not found. Install git and re-run." >&2
-  exit 1
+STEP="preflight"
+command -v git &>/dev/null || die "git not found. Install git and re-run."
+command -v node &>/dev/null || die "node not found. Install Node.js from https://nodejs.org/ and re-run."
+
+# ---- Project ID (the only input) -------------------------------------------
+
+STEP="reading Project ID"
+if [[ -z "${PROJECT_ID:-}" ]]; then
+  [[ -t 0 ]] || die "PROJECT_ID is required when not running interactively."
+  echo ""
+  echo "VS Code Extension Template — Bootstrap"
+  echo "───────────────────────────────────────"
+  while true; do
+    printf "  Project ID (kebab-case): "
+    read -r PROJECT_ID
+    [[ -n "$PROJECT_ID" ]] && break
+    echo "    ✗ This field is required." >&2
+  done
 fi
 
-if ! command -v node &>/dev/null; then
-  echo "✗ node not found. Install Node.js 24 (minimum 22.12) from https://nodejs.org/ and re-run." >&2
-  exit 1
-fi
+[[ "$PROJECT_ID" =~ ^[a-z][a-z0-9]*(-[a-z0-9]+)*$ ]] \
+  || die "Project ID '${PROJECT_ID}' must be kebab-case (lowercase letters, digits, hyphens), e.g. my-extension."
 
-NODE_VERSION=$(node --version | sed 's/^v//')
-NODE_MAJOR="${NODE_VERSION%%.*}"
-NODE_MINOR="${NODE_VERSION#*.}"
-NODE_MINOR="${NODE_MINOR%%.*}"
-if ! [[ "$NODE_MAJOR" =~ ^[0-9]+$ ]] || ! [[ "$NODE_MINOR" =~ ^[0-9]+$ ]] \
-  || (( NODE_MAJOR < 22 )) || (( NODE_MAJOR == 22 && NODE_MINOR < 12 )); then
-  echo "✗ Node.js $NODE_VERSION is too old. Node 22.12 or newer is required (Node 24 recommended)." >&2
-  exit 1
-fi
-if (( NODE_MAJOR < 24 )); then
-  echo "  ⚠ Node.js $NODE_VERSION detected. Node 24 or newer is recommended (package.json engines)." >&2
-fi
-
-# ---- collect defaults from git config --------------------------------------
+# ---- derive everything else ------------------------------------------------
 
 DEFAULT_AUTHOR_NAME=$(git config --get user.name 2>/dev/null || echo "")
 DEFAULT_AUTHOR_EMAIL=$(git config --get user.email 2>/dev/null || echo "")
-DEFAULT_YEAR=$(date +%Y)
 
-# ---- prompt ----------------------------------------------------------------
-
-echo ""
-echo "VS Code Extension Template — Bootstrap"
-echo "───────────────────────────────────────"
-echo "Press Enter to accept the default shown in [brackets]."
-echo ""
-
-prompt_with_default "Project ID (kebab)"  ""      PROJECT_ID    "true"
-
-DERIVED_PROJECT_NAME=$(to_title_case "$PROJECT_ID")
-prompt_with_default "Project name"        "$DERIVED_PROJECT_NAME"  PROJECT_NAME  "true"
-prompt_with_default "Package manager"     "pnpm"   PROVIDER      "false"
-
-# Normalise provider
-PROVIDER="${PROVIDER:-pnpm}"
-if [[ "$PROVIDER" != "npm" && "$PROVIDER" != "pnpm" && "$PROVIDER" != "yarn" ]]; then
-  echo "  ⚠ Unknown provider '$PROVIDER'. Falling back to pnpm." >&2
-  PROVIDER="pnpm"
-fi
-
-# ---- derive remaining tokens -----------------------------------------------
-
+PROJECT_NAME="${PROJECT_NAME:-$(to_title_case "$PROJECT_ID")}"
 EXTENSION_NAME="$PROJECT_ID"
 EXTENSION_ID=$(to_camel_case "$PROJECT_ID")
 DISPLAY_NAME="$PROJECT_NAME"
-AUTHOR_NAME="${DEFAULT_AUTHOR_NAME:-Your Name}"
-AUTHOR_EMAIL="${DEFAULT_AUTHOR_EMAIL:-you@example.com}"
-YEAR="$DEFAULT_YEAR"
-DESCRIPTION="A VS Code extension."
-GITHUB_USERNAME=$(slugify "${DEFAULT_AUTHOR_NAME:-your-username}")
-PUBLISHER="$GITHUB_USERNAME"
+AUTHOR_NAME="${AUTHOR_NAME:-${DEFAULT_AUTHOR_NAME:-Your Name}}"
+AUTHOR_EMAIL="${AUTHOR_EMAIL:-${DEFAULT_AUTHOR_EMAIL:-you@example.com}}"
+YEAR=$(date +%Y)
+DESCRIPTION="${DESCRIPTION:-A VS Code extension.}"
+GITHUB_USERNAME="${GITHUB_USERNAME:-$(slugify "${DEFAULT_AUTHOR_NAME:-your-username}")}"
+PUBLISHER="${PUBLISHER:-$GITHUB_USERNAME}"
 REPO_URL="https://github.com/${GITHUB_USERNAME}/${PROJECT_ID}"
 SITE_URL="https://${GITHUB_USERNAME}.github.io/${PROJECT_ID}"
 
-# ---- confirmation ----------------------------------------------------------
-
 echo ""
-echo "Review:"
-printf "  %-22s = %s\n" "Project ID"       "$PROJECT_ID"
-printf "  %-22s = %s\n" "Project name"     "$PROJECT_NAME"
-printf "  %-22s = %s\n" "Package manager"  "$PROVIDER"
-printf "  %-22s = %s\n" "Extension ID"     "$EXTENSION_ID"
-printf "  %-22s = %s\n" "Author"           "$AUTHOR_NAME <$AUTHOR_EMAIL>"
-printf "  %-22s = %s\n" "Repo URL"         "$REPO_URL"
-echo ""
-printf "Apply? [y/N]: "
-read -r confirm
+echo "Creating ./${PROJECT_ID}"
+printf "  %-14s %s\n" "Name" "$PROJECT_NAME"
+printf "  %-14s %s\n" "Extension ID" "$EXTENSION_ID"
+printf "  %-14s %s\n" "Author" "$AUTHOR_NAME <$AUTHOR_EMAIL>"
+printf "  %-14s %s\n" "Publisher" "$PUBLISHER"
+printf "  %-14s %s\n" "Repo URL" "$REPO_URL"
+echo "  (override with PROJECT_NAME, GITHUB_USERNAME, PUBLISHER, AUTHOR_NAME, AUTHOR_EMAIL)"
 
-confirm_lc=$(printf '%s' "$confirm" | tr '[:upper:]' '[:lower:]')
-if [[ "$confirm_lc" != "y" ]]; then
-  echo "Aborted. No files changed."
-  exit 0
-fi
+# ---- target dir ------------------------------------------------------------
 
-# ---- provider setup --------------------------------------------------------
-
-echo ""
-echo "Setting up package manager…"
-setup_provider "$PROVIDER"
-echo "  ✓ $PROVIDER ready."
-
-# ---- check target dir ------------------------------------------------------
-
+STEP="checking target directory"
 TARGET_DIR="$PROJECT_ID"
 if [[ -e "$TARGET_DIR" ]] && [[ -n "$(ls -A "$TARGET_DIR" 2>/dev/null)" ]]; then
-  echo "✗ Directory './$TARGET_DIR' already exists and is not empty." >&2
-  echo "  Remove or rename it, then re-run." >&2
-  exit 1
+  die "Directory './$TARGET_DIR' already exists and is not empty. Remove or rename it, then re-run."
 fi
 
 # ---- clone -----------------------------------------------------------------
 
+STEP="cloning the template"
 echo ""
 echo "Cloning template…"
-git clone --depth 1 --branch "$TEMPLATE_BRANCH" "$TEMPLATE_REPO_URL" "$TARGET_DIR"
-echo "  ✓ Cloned into ./$TARGET_DIR"
-
+CREATED_DIR="$TARGET_DIR"
+git clone --quiet --depth 1 --branch "$TEMPLATE_BRANCH" "$TEMPLATE_REPO_URL" "$TARGET_DIR"
 cd "$TARGET_DIR"
 
-echo "  Removing template git history…"
-rm -rf .git
+# ---- tool versions the template requires -----------------------------------
 
-# Remove the bootstrap script from the clone — it doesn't belong in the new project
-rm -f install.sh
+STEP="checking Node.js version"
+NODE_FLOOR=$(pkg_field "require('./package.json').engines.node" | sed -E 's/[^0-9]*([0-9]+).*/\1/')
+NODE_MAJOR=$(node -p "process.versions.node.split('.')[0]")
+if [[ "$NODE_FLOOR" =~ ^[0-9]+$ ]] && (( NODE_MAJOR < NODE_FLOOR )); then
+  die "Node.js $(node --version) is too old. This template needs Node.js ${NODE_FLOOR} or newer."
+fi
 
-# The template's own CI workflow must not ship in generated projects
+STEP="setting up pnpm"
+if ! command -v pnpm &>/dev/null; then
+  PNPM_MAJOR=$(pkg_field "require('./package.json').devEngines.packageManager.version" | sed -E 's/[^0-9]*([0-9]+).*/\1/')
+  PNPM_SPEC="pnpm${PNPM_MAJOR:+@$PNPM_MAJOR}"
+  if command -v corepack &>/dev/null; then
+    corepack enable pnpm >/dev/null 2>&1 || true
+    corepack prepare "$PNPM_SPEC" --activate >/dev/null 2>&1 || true
+  fi
+  command -v pnpm &>/dev/null || die "pnpm not found and corepack could not provide it. Install it: https://pnpm.io/installation"
+fi
+
+# ---- strip template-only files ---------------------------------------------
+
+STEP="removing template-only files"
+rm -rf .git install.sh openspec graphify-out .claude .cursorignore
 rm -f .github/workflows/template-check.yml
 
 # ---- replace tokens --------------------------------------------------------
 
-echo ""
+STEP="filling in project tokens"
 echo "Filling in project tokens…"
 
 FILES=()
@@ -250,7 +216,6 @@ EXCLUDE_PATTERNS=(
   'pnpm-lock\.yaml$'
 )
 
-replaced=0
 for f in ${FILES[@]+"${FILES[@]}"}; do
   skip=false
   for pat in "${EXCLUDE_PATTERNS[@]}"; do
@@ -275,61 +240,53 @@ for f in ${FILES[@]+"${FILES[@]}"}; do
     -e "s|{{GITHUB_USERNAME}}|$(sed_rhs_escape "$GITHUB_USERNAME")|g" \
     -e "s|{{YEAR}}|$(sed_rhs_escape "$YEAR")|g" \
     "$f"
-  replaced=$((replaced + 1))
 done
 
-echo "  ✓ Processed ${replaced} files."
-
-# ---- verify no tokens remain -----------------------------------------------
-
-# LLM.txt is excluded: it documents the {{TOKEN}} syntax with literal examples
+# llms.txt is excluded: it documents the {{TOKEN}} syntax with literal examples
 # on purpose, which would always be reported as false positives.
 remaining=$(grep -rE '\{\{(EXTENSION_NAME|DISPLAY_NAME|EXTENSION_ID|PUBLISHER|DESCRIPTION|AUTHOR_NAME|AUTHOR_EMAIL|REPO_URL|SITE_URL|GITHUB_USERNAME|YEAR)\}\}' \
   --include='*.ts' --include='*.js' --include='*.json' \
   --include='*.md' --include='*.yml' --include='*.yaml' \
   --include='*.html' --include='*.css' --include='*.sh' \
   --include='*.txt' --include='*.mjs' --include='*.cjs' \
-  . 2>/dev/null | grep -v '^\./LLM\.txt:' | grep -v 'node_modules'| grep -v 'dist/' | grep -v 'out-test/' | grep -v 'coverage/' || true)
+  --include='*.init' \
+  . 2>/dev/null | grep -v '^\./llms\.txt:' | grep -v 'node_modules' | grep -v 'dist/' | grep -v 'out-test/' | grep -v 'coverage/' || true)
 
 if [[ -n "$remaining" ]]; then
-  echo ""
   echo "⚠ Unreplaced tokens found — edit these files manually:" >&2
   echo "$remaining" >&2
 fi
 
-# ---- un-deform .github placeholders ----------------------------------------
+# ---- enable .github placeholders -------------------------------------------
 
-echo ""
-echo "Enabling .github files…"
+STEP="enabling .github files"
 while IFS= read -r f; do mv "$f" "${f%.init}"; done \
   < <(find .github -type f -name '*.init' 2>/dev/null)
-echo "  ✓ .github files enabled."
 
-# ---- non-pnpm lockfile cleanup ---------------------------------------------
+# ---- git + dependencies ----------------------------------------------------
 
-if [[ "$PROVIDER" != "pnpm" ]]; then
-  echo ""
-  echo "Removing pnpm-specific files for $PROVIDER project…"
-  [[ -f pnpm-lock.yaml ]]    && rm -f pnpm-lock.yaml    && echo "  ✓ Removed pnpm-lock.yaml"
-  [[ -f pnpm-workspace.yaml ]] && rm -f pnpm-workspace.yaml && echo "  ✓ Removed pnpm-workspace.yaml"
+# git init comes first so husky installs its hooks during `pnpm install`.
+STEP="initialising git"
+git init --quiet --initial-branch=main 2>/dev/null || git init --quiet
+
+STEP="installing dependencies"
+echo "Installing dependencies with pnpm…"
+pnpm install
+
+STEP="creating the initial commit"
+git add -A
+if ! git -c user.name="$AUTHOR_NAME" -c user.email="$AUTHOR_EMAIL" \
+  commit --quiet -m "chore: init from vscode-extension-template"; then
+  echo "  ⚠ Initial commit failed; run 'git add -A && git commit' yourself." >&2
 fi
 
-# ---- install dependencies --------------------------------------------------
-
-echo ""
-echo "Installing dependencies with $PROVIDER…"
-"$PROVIDER" install
-echo "  ✓ Dependencies installed."
-
 # ---- done ------------------------------------------------------------------
+
+trap - EXIT
+CREATED_DIR=""
 
 echo ""
 echo "✓ Project ready in ./${PROJECT_ID}"
 echo ""
-echo "Next steps:"
-echo "  cd ${PROJECT_ID}"
-echo "  git init && git add . && git commit -m 'chore: init from vscode-extension-template'"
-echo "  code ."
-echo "  # Press F5 in VS Code to launch the Extension Development Host"
-echo ""
-echo "  Happy coding!"
+echo "Next: cd ${PROJECT_ID} && code .   (press F5 to launch the Extension Development Host)"
+echo "Happy coding!"

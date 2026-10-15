@@ -5,10 +5,10 @@ Use these for feature-level tests that require the real VS Code API.
 
 ## What lives here
 
-| File pattern | Purpose |
-|---|---|
-| `*.test.ts` | Mocha TDD test files (one per feature/command) |
-| `index.ts` | Test runner loader (glob pattern, Mocha options) |
+| File pattern   | Purpose                                                       |
+| -------------- | ------------------------------------------------------------- |
+| `*.test.ts`    | Mocha TDD test files (one per feature/command)                |
+| `index.ts`     | Test runner loader (glob pattern, Mocha options)              |
 | `../fixtures/` | Static fixture files (workspace folders, sample source files) |
 
 ## Current coverage
@@ -28,6 +28,7 @@ No tests yet — this is a clean scaffold. Add your first test file here.
 ## How to add an integration test
 
 1. Create `test/suite/myFeature.test.ts`:
+
    ```typescript
    import * as assert from 'assert';
    import * as vscode from 'vscode';
@@ -39,7 +40,8 @@ No tests yet — this is a clean scaffold. Add your first test file here.
      });
    });
    ```
-2. Build: `npx tsc -p tsconfig.test.json`.
+
+2. Build: `pnpm exec tsc -p tsconfig.test.json`.
 3. Run: `pnpm run test:integration` (requires display; use `xvfb-run -a` on Linux).
 
 ## Reference architecture

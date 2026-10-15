@@ -1,8 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
-
-import { BaseCommandHandler } from '../../src/commands/BaseCommandHandler';
 import type { CommandResult } from '../../src/commands/BaseCommandHandler';
+import { BaseCommandHandler } from '../../src/commands/BaseCommandHandler';
 import type { IAccessibilityService } from '../../src/di/interfaces/IAccessibilityService';
 import type { ILogger } from '../../src/di/interfaces/ILogger';
 

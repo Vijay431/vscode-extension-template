@@ -104,10 +104,14 @@ export class EventEmitter<T = void> {
   private listeners: ((e: T) => unknown)[] = [];
   event = (listener: (e: T) => unknown) => {
     this.listeners.push(listener);
-    return { dispose: () => { this.listeners = this.listeners.filter((l) => l !== listener); } };
+    return {
+      dispose: () => {
+        this.listeners = this.listeners.filter((l) => l !== listener);
+      },
+    };
   };
   fire(data: T) {
-    this.listeners.forEach((l) => l(data));
+    for (const l of this.listeners) l(data);
   }
   dispose() {
     this.listeners = [];
@@ -143,9 +147,7 @@ export class Selection extends Range {
     super(anchor, active);
   }
   get isEmpty() {
-    return (
-      this.anchor.line === this.active.line && this.anchor.character === this.active.character
-    );
+    return this.anchor.line === this.active.line && this.anchor.character === this.active.character;
   }
 }
 
