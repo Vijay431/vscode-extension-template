@@ -110,11 +110,14 @@ jobs:
           git config --global user.name "CI"
           git config --global user.email "ci@example.com"
 
+      - name: Branch the checked-out commit for cloning
+        run: git switch -c ci-template
+
       - name: Run install.sh non-interactively
         env:
           PROJECT_ID: ci-extension
           TEMPLATE_REPO_URL: ${{ github.workspace }}
-          TEMPLATE_BRANCH: ${{ github.head_ref || github.ref_name }}
+          TEMPLATE_BRANCH: ci-template
         working-directory: ${{ runner.temp }}
         run: bash "$GITHUB_WORKSPACE/install.sh"
 
