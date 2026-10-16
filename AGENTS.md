@@ -19,7 +19,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for module boundaries and data flow befor
 - `pnpm test:integration`: compile tests and run VS Code integration tests with `@vscode/test-cli`. On Linux, wrap it in `xvfb-run -a`.
 - `pnpm package`: create a `.vsix` package.
 
-Use Node.js 24+ and pnpm. For manual testing, open the repo in VS Code and press `F5`.
+Use Node.js 24 (strictly; `.nvmrc` = `lts/krypton`) and pnpm. For manual testing, open the repo in VS Code and press `F5`.
 
 ## Coding Style & Naming Conventions
 
