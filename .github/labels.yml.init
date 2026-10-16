@@ -28,9 +28,21 @@
 - name: needs triage
   color: fbca04
   description: Needs maintainer review.
-- name: stale
-  color: e4e669
-  description: Inactive issue or pull request.
 - name: ignore-for-release
   color: ffffff
   description: Exclude from generated release notes.
+- name: configuration
+  color: 5319e7
+  description: Settings or configuration problems.
+- name: cross-platform
+  color: 1d76db
+  description: Behavior that differs between operating systems.
+- name: performance
+  color: fef2c0
+  description: Speed or resource-use problems.
+- name: refactoring
+  color: c5def5
+  description: Code cleanup without behavior change.
+- name: github-actions
+  color: 000000
+  description: Workflow and automation changes.

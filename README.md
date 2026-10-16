@@ -11,7 +11,7 @@ A production-ready, opinionated template for building VS Code extensions. Mirror
 | **Commands**        | `BaseCommandHandler` abstract class + `ICommandHandler` interface; `CommandsManager` registers all commands                      |
 | **Services**        | `ConfigurationService`, `AccessibilityService` wired at startup                                                                  |
 | **Utils**           | `Logger`, `Cache` (LRU + TTL), `ConfigValidator`, `isSafeFilePath`, accessibility helpers                                        |
-| **Tests**           | Vitest unit test harness (no live VS Code); Mocha integration test harness (live Extension Host via `@vscode/test-electron`)     |
+| **Tests**           | Vitest unit test harness (no live VS Code); Mocha integration tests (live Extension Host via `@vscode/test-cli`)     |
 | **CI/CD**           | GitHub Actions that activate on bootstrap: lint → unit tests → integration tests → cross-platform build → release → dual publish |
 | **Starter command** | Hello World wired end-to-end (DI → manager → command)                                                                            |
 
@@ -125,11 +125,10 @@ Press **F5** in VS Code to launch the Extension Development Host.
 
 ## scripts/
 
-| Script                     | Purpose                                                                                                                                                                                                          |
-| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `check-commit-size.sh`     | Enforces ≤ 10 files and ≤ 400 changed lines per staged commit. Used by the advisory `pr-commit-size` CI job; it is not run by the local `pre-commit` hook. Accepts `--excludes <file>` to point at a custom exclusion patterns file. |
-| `commit-size-excludes.txt` | Glob patterns excluded from the commit size count — lockfiles, generated files, etc. Referenced by `check-commit-size.sh` by default.                                                                            |
-| `convert-encoding.sh`      | Normalizes all tracked text files to UTF-8 encoding and LF line endings. Run manually when files arrive with CRLF or non-UTF-8 encoding.                                                                         |
+| Script                | Purpose                                                                                           |
+| --------------------- | ------------------------------------------------------------------------------------------------- |
+| `check-prerelease.cjs` | Fails when a direct dependency uses a prerelease version. Run by `pnpm check:prerelease` and CI. |
+| `smoke-bundle.cjs`     | Loads the production bundle outside VS Code to catch missing or incompatible code. Run by `pnpm smoke:bundle`. |
 
 ## Optional: GitHub Pages
 

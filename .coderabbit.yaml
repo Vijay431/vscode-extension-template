@@ -1,0 +1,39 @@
+language: en-US
+
+reviews:
+  profile: chill
+  request_changes_workflow: false
+  auto_review:
+    enabled: true
+    drafts: false
+    base_branches:
+      - main
+
+  summary:
+    auto_update: true
+
+  path_filters:
+    - '!dist/**'
+    - '!images/**'
+    - '!*.vsix'
+    - '!pnpm-lock.yaml'
+
+  path_instructions:
+    - path: 'src/**/*.ts'
+      instructions: |
+        This is a VS Code extension written in TypeScript with strict mode enabled.
+        - Code runs in the VS Code extension host. Browser globals (window, document, localStorage) are not available.
+        - Use the `vscode` API for editor interactions.
+        - Flag `any` usage and unhandled promise rejections.
+        - Prefer `unknown` over `any` in catch blocks.
+        - Do not suggest npm or yarn commands. This project uses pnpm.
+        - Biome is the only linter and formatter. Do not suggest ESLint or Prettier.
+
+    - path: 'package.json'
+      instructions: |
+        This is a VS Code extension manifest. Validate that:
+        - Each new `contributes.commands` entry has a matching registration in source.
+        - `engines.vscode` is not lowered without justification.
+
+chat:
+  auto_reply: true

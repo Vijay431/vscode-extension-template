@@ -8,7 +8,6 @@ Use these for feature-level tests that require the real VS Code API.
 | File pattern   | Purpose                                                       |
 | -------------- | ------------------------------------------------------------- |
 | `*.test.ts`    | Mocha TDD test files (one per feature/command)                |
-| `index.ts`     | Test runner loader (glob pattern, Mocha options)              |
 | `../fixtures/` | Static fixture files (workspace folders, sample source files) |
 
 ## Current coverage
@@ -17,8 +16,9 @@ No tests yet — this is a clean scaffold. Add your first test file here.
 
 ## Conventions
 
-- Framework: **Mocha** + `@vscode/test-electron` (`pnpm run test:integration`).
-- Compiled by `tsconfig.test.json` → `out-test/`; run via `test/runTests.ts`.
+- Framework: **Mocha** (bundled with `@vscode/test-cli`), run with `pnpm run test:integration`.
+- Compiled by `tsconfig.test.json` → `out-test/`; run by `vscode-test`, configured in `.vscode-test.mjs`.
+- Debug from the editor: install the recommended **Extension Test Runner** (`ms-vscode.extension-test-runner`), run `pnpm exec tsc -p tsconfig.test.json -w`, then use **Debug Test** in the Test Explorer. It reads `.vscode-test.mjs`, so breakpoints work in the compiled suite.
 - All test descriptions must start with **`"should "`**.
 - Do not test pure logic here — use `test/unit/` for that.
 - On Linux CI, tests run under `xvfb-run -a` (headless display).
