@@ -21,7 +21,7 @@ By participating in this project, you are expected to uphold our [Code of Conduc
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) (version 24+ required for development; the built extension targets Node.js 18+)
+- [Node.js](https://nodejs.org/) (Node.js 24 only)
 - [PNPM](https://pnpm.io/) 11+ (enable with `corepack enable pnpm`, or see <https://pnpm.io/installation>)
 - [Visual Studio Code](https://code.visualstudio.com/) (for development and testing)
 - [Git](https://git-scm.com/)
@@ -57,7 +57,7 @@ pnpm install
 ### 3. Build and Verify
 
 ```bash
-# Build the extension (requires Node.js 24+)
+# Build the extension (requires Node.js 24)
 pnpm run build
 
 # Lint and format check with Biome
@@ -212,7 +212,7 @@ Workflows and most other `.github/` files ship as `*.init` placeholders in the t
 - `lint` — runs `pnpm run lint`
 - `test-unit` — runs `pnpm run test:unit` (Vitest, ubuntu only, after `lint`)
 - `test-integration` — runs `pnpm run test:integration` (Mocha + VS Code via `@vscode/test-cli` under `xvfb-run`, ubuntu, after `lint`, parallel with `test-unit`)
-- `build` — builds on Ubuntu, Windows, macOS × Node 24 × VS Code stable/insiders (after both test jobs pass)
+- `build` — builds on Ubuntu × Node 24 × VS Code stable/insiders (after both test jobs pass)
 - `audit` — runs `pnpm audit --audit-level=moderate`
 - `dependency-review` — reviews dependency changes on PRs
 

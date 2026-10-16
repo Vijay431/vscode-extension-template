@@ -37,7 +37,7 @@ Check with `git ls-files` in each repo.
 | --- | --- |
 | additional-context-menus | Extra issue templates (`context_menu_enhancement`, `framework_specific`, `terminal_configuration`) and their labels. Demo media and `logo.png`. Project `engines`, contributions, and dependencies. |
 | keypress-notifications | Project `engines`, contributions, and dependencies. |
-| both | A lower `engines.node` floor adds that version to the CI build matrix (`24.x` and `26.x` by default). |
+| both | None. All repos pin Node 24 strictly (`engines.node` is `>=24 <25`, CI matrices run `24.x` only). |
 
 Record every Biome rule override and every deferred dependency bump below.
 
@@ -51,7 +51,6 @@ Record every Biome rule override and every deferred dependency bump below.
 #### Workflows
 
 - ACM and KPN declare `packageManager` in `package.json`, so their workflows omit `version: 12` on `pnpm/action-setup`. The action reads the pinned version from `package.json`.
-- ACM and KPN add `22.x` to the build matrix, because their `engines.node` floor is 22.
 
 #### Tests
 
@@ -71,7 +70,7 @@ Branch `chore/consolidate-deps` in ACM and KPN.
 | KPN | #185 `actions/cache` | Superseded: no workflow uses the cache action |
 | KPN | #239 `tsx`, #235 `esbuild`, #234 `ovsx` | Applied |
 | KPN | #159, #153, #147 `vitest`, `@vitest/coverage-v8` | Applied at 4.1.11 (the PRs target 4.1.8 and 4.1.0) |
-| KPN | #236 `@types/node` 22 to 26 | Deferred: `engines.node` is `>=22.22.1`, and Node 26 typings would allow APIs missing on the floor. ACM pins Node 24 typings for the same reason |
+| KPN | #236 `@types/node` 22 to 26 | Deferred: all repos pin Node 24 strictly, so `@types/node` stays on 24 and Dependabot ignores its major bumps |
 
 KPN also takes the template's `pnpm-workspace.yaml` overrides and the `braces` audit ignore, so `pnpm audit` is clean. ACM #388 and KPN #291 are not Dependabot PRs and were left alone.
 
