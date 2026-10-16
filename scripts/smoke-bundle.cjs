@@ -1,7 +1,7 @@
 'use strict';
 // Loads dist/extension.js with a stubbed `vscode` module and exercises activate/deactivate.
-const Module = require('module');
-const path = require('path');
+const Module = require('node:module');
+const path = require('node:path');
 
 const root = path.resolve(__dirname, '..');
 const pkg = require(path.join(root, 'package.json'));
@@ -65,6 +65,7 @@ const vscodeStub = {
     executeCommand: async () => undefined,
   },
   ConfigurationTarget: { Global: 1, Workspace: 2, WorkspaceFolder: 3 },
+  ExtensionMode: { Production: 1, Development: 2, Test: 3 },
   EventEmitter,
 };
 
@@ -84,6 +85,8 @@ async function main() {
     throw new Error(`Commands not registered: ${missing.join(', ')}`);
   }
   console.log(`${process.version} OK`);
+  // An extension may leave timers running after deactivate; do not wait for them.
+  process.exit(0);
 }
 
 main().catch((err) => {

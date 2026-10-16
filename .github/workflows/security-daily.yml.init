@@ -1,0 +1,273 @@
+name: Security (Daily)
+
+on:
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'pnpm-lock.yaml'
+      - 'package.json'
+
+permissions:
+  contents: read
+
+jobs:
+  security-audit:
+    name: pnpm Security Audit
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      security-events: read
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Install PNPM
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
+        with:
+          standalone: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: '24.x'
+          cache: pnpm
+          cache-dependency-path: |
+            pnpm-lock.yaml
+            package.json
+
+      - name: Cache node_modules
+        id: cache-node-modules
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: node_modules
+          key: node-modules-${{ runner.os }}-node24.x-${{ hashFiles('pnpm-lock.yaml') }}
+
+      - name: Install Dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: pnpm install --frozen-lockfile
+
+      - name: Run Security Audit
+        id: audit
+        run: |
+          echo "Running pnpm audit..."
+          pnpm audit --json > audit-results.json || true
+
+          CRITICAL=$(jq '.metadata.vulnerabilities.critical' audit-results.json)
+          HIGH=$(jq '.metadata.vulnerabilities.high' audit-results.json)
+          MODERATE=$(jq '.metadata.vulnerabilities.moderate' audit-results.json)
+          LOW=$(jq '.metadata.vulnerabilities.low' audit-results.json)
+          TOTAL=$((CRITICAL + HIGH + MODERATE + LOW))
+
+          echo "critical=$CRITICAL" >> "$GITHUB_OUTPUT"
+          echo "high=$HIGH" >> "$GITHUB_OUTPUT"
+          echo "moderate=$MODERATE" >> "$GITHUB_OUTPUT"
+          echo "low=$LOW" >> "$GITHUB_OUTPUT"
+          echo "total=$TOTAL" >> "$GITHUB_OUTPUT"
+
+          echo "CRITICAL_COUNT=$CRITICAL" >> "$GITHUB_ENV"
+          echo "HIGH_COUNT=$HIGH" >> "$GITHUB_ENV"
+          echo "MODERATE_COUNT=$MODERATE" >> "$GITHUB_ENV"
+          echo "LOW_COUNT=$LOW" >> "$GITHUB_ENV"
+
+          {
+            echo "## Security Audit Results"
+            echo "| Severity | Count |"
+            echo "|----------|-------|"
+            echo "| Critical | $CRITICAL |"
+            echo "| High | $HIGH |"
+            echo "| Moderate | $MODERATE |"
+            echo "| Low | $LOW |"
+            echo "| **Total** | **$TOTAL** |"
+          } >> audit-summary.md
+
+      - name: Fetch Dependabot Alerts
+        id: dependabot-alerts
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Fetching Dependabot alerts..."
+          gh api --paginate "repos/${{ github.repository }}/dependabot/alerts?state=open&per_page=100" > dependabot-alerts.json || echo "[]" > dependabot-alerts.json
+
+          DEPENDABOT_CRITICAL=$(jq '[.[] | select(.security_advisory.severity == "critical")] | length' dependabot-alerts.json)
+          DEPENDABOT_HIGH=$(jq '[.[] | select(.security_advisory.severity == "high")] | length' dependabot-alerts.json)
+          DEPENDABOT_MEDIUM=$(jq '[.[] | select(.security_advisory.severity == "medium")] | length' dependabot-alerts.json)
+          DEPENDABOT_LOW=$(jq '[.[] | select(.security_advisory.severity == "low")] | length' dependabot-alerts.json)
+          DEPENDABOT_TOTAL=$((DEPENDABOT_CRITICAL + DEPENDABOT_HIGH + DEPENDABOT_MEDIUM + DEPENDABOT_LOW))
+
+          echo "dependabot_critical=$DEPENDABOT_CRITICAL" >> "$GITHUB_OUTPUT"
+          echo "dependabot_high=$DEPENDABOT_HIGH" >> "$GITHUB_OUTPUT"
+          echo "dependabot_medium=$DEPENDABOT_MEDIUM" >> "$GITHUB_OUTPUT"
+          echo "dependabot_low=$DEPENDABOT_LOW" >> "$GITHUB_OUTPUT"
+          echo "dependabot_total=$DEPENDABOT_TOTAL" >> "$GITHUB_OUTPUT"
+
+          echo "DEPENDABOT_CRITICAL_COUNT=$DEPENDABOT_CRITICAL" >> "$GITHUB_ENV"
+          echo "DEPENDABOT_HIGH_COUNT=$DEPENDABOT_HIGH" >> "$GITHUB_ENV"
+          echo "DEPENDABOT_MEDIUM_COUNT=$DEPENDABOT_MEDIUM" >> "$GITHUB_ENV"
+          echo "DEPENDABOT_LOW_COUNT=$DEPENDABOT_LOW" >> "$GITHUB_ENV"
+
+          {
+            echo ""
+            echo "## Dependabot Alerts"
+            if [ "$DEPENDABOT_TOTAL" -gt 0 ]; then
+              echo "| Package | Severity | GHSA ID | First Patched Version |"
+              echo "|---------|----------|---------|------------------------|"
+              jq -r '.[] | "| \(.dependency.package.name) | \(.security_advisory.severity) | \(.security_advisory.ghsa_id) | \(.security_vulnerability.first_patched_version.identifier // "—") |"' dependabot-alerts.json
+            else
+              echo "No open Dependabot alerts."
+            fi
+          } >> audit-summary.md
+
+      - name: Check for Outdated Packages
+        id: outdated
+        run: |
+          echo "Checking for outdated packages..."
+          pnpm outdated --json > outdated.json || true
+
+          OUTDATED_COUNT=$(jq '. | length' outdated.json)
+          echo "outdated_count=$OUTDATED_COUNT" >> "$GITHUB_OUTPUT"
+
+          if [ "$OUTDATED_COUNT" -gt 0 ]; then
+            {
+              echo ""
+              echo "## Outdated Packages ($OUTDATED_COUNT)"
+              echo "| Package | Current | Wanted | Latest |"
+              echo "|---------|---------|--------|--------|"
+              jq -r 'to_entries[] | "| \(.key) | \(.value.current) | \(.value.wanted) | \(.value.latest) |"' outdated.json
+            } >> audit-summary.md
+          fi
+
+      - name: Manage Security Alert Issue
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const criticalCount = parseInt(process.env.CRITICAL_COUNT ?? '');
+            const highCount = parseInt(process.env.HIGH_COUNT ?? '');
+            const moderateCount = parseInt(process.env.MODERATE_COUNT ?? '');
+            const lowCount = parseInt(process.env.LOW_COUNT ?? '');
+            const dependabotCriticalCount = parseInt(process.env.DEPENDABOT_CRITICAL_COUNT ?? '');
+            const dependabotHighCount = parseInt(process.env.DEPENDABOT_HIGH_COUNT ?? '');
+            const dependabotMediumCount = parseInt(process.env.DEPENDABOT_MEDIUM_COUNT ?? '');
+            const dependabotLowCount = parseInt(process.env.DEPENDABOT_LOW_COUNT ?? '');
+
+            if ([criticalCount, highCount, moderateCount, lowCount, dependabotCriticalCount, dependabotHighCount, dependabotMediumCount, dependabotLowCount].some(isNaN)) {
+              core.setFailed('Audit counts contain NaN — audit output may be malformed. Refusing to close security issues.');
+              return;
+            }
+
+            const hasVulns = criticalCount > 0 || highCount > 0 || dependabotCriticalCount > 0 || dependabotHighCount > 0;
+
+            // Find existing open security alert issues created by this bot
+            const { data: existingIssues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: ['security', 'needs triage'],
+              per_page: 100
+            });
+            const securityAlertIssues = existingIssues
+              .filter(i => i.title.startsWith('Security Alert:'))
+              .sort((a, b) => a.number - b.number);
+
+            if (!hasVulns) {
+              // Audit is clean - close all existing security alert issues
+              for (const issue of securityAlertIssues) {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issue.number,
+                  body: '✅ No critical or high severity vulnerabilities detected. Closing this issue automatically.'
+                });
+                await github.rest.issues.update({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issue.number,
+                  state: 'closed',
+                  state_reason: 'completed'
+                });
+              }
+              console.log(`Closed ${securityAlertIssues.length} resolved security issue(s).`);
+              return;
+            }
+
+            // Vulnerabilities found
+            const auditSummary = fs.existsSync('audit-summary.md') ? fs.readFileSync('audit-summary.md', 'utf8') : '';
+            const issueTitle = `Security Alert: ${criticalCount + dependabotCriticalCount} Critical, ${highCount + dependabotHighCount} High Vulnerabilities`;
+            const issueBody = `## Security Vulnerability Alert\n\nThe daily security audit has detected **critical** or **high** severity vulnerabilities that require immediate attention.\n\n## Security Audit Results (pnpm audit)\n| Severity | Count |\n|----------|-------|\n| Critical | ${criticalCount}     |\n| High     | ${highCount}     |\n| Moderate | ${moderateCount}     |\n| Low      | ${lowCount}     |\n| **Total**| **${criticalCount + highCount + moderateCount + lowCount}**|\n\n## Dependabot Alerts\n| Severity | Count |\n|----------|-------|\n| Critical | ${dependabotCriticalCount}     |\n| High     | ${dependabotHighCount}     |\n| Medium   | ${dependabotMediumCount}     |\n| Low      | ${dependabotLowCount}     |\n| **Total**| **${dependabotCriticalCount + dependabotHighCount + dependabotMediumCount + dependabotLowCount}**|\n\n${auditSummary}\n\n## Next Steps\n\n1. **Immediate Action Required**: Review and address critical and high-severity vulnerabilities\n2. **Update Dependencies**: Run \`pnpm update\` and \`pnpm audit\` manually\n3. **Check Overrides**: Verify \`pnpm-workspace.yaml\` overrides cannot pin the safe version\n4. **Test Thoroughly**: Ensure all functionality works after updates\n\n---\n\n*This issue was automatically created by the Daily Security Audit workflow.*\n*Run ID: ${{ github.run_id }} | Run Number: ${{ github.run_number }}*`;
+
+            if (securityAlertIssues.length === 0) {
+              // No existing issue - create one
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: issueTitle,
+                body: issueBody,
+                labels: ['security', 'needs triage']
+              });
+              console.log('Created new security alert issue.');
+            } else {
+              // Update the most recent existing issue, close all older ones
+              const oldIssues = securityAlertIssues.slice(0, -1);
+              const latestIssue = securityAlertIssues[securityAlertIssues.length - 1];
+
+              for (const issue of oldIssues) {
+                await github.rest.issues.update({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issue.number,
+                  state: 'closed',
+                  state_reason: 'not_planned'
+                });
+              }
+
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: latestIssue.number,
+                title: issueTitle,
+                body: issueBody
+              });
+              console.log(`Updated issue #${latestIssue.number}, closed ${oldIssues.length} stale duplicate(s).`);
+            }
+
+      - name: Notify on Workflow Failure
+        if: failure()
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        with:
+          script: |
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: 'Daily Security Audit Failed',
+              body: `## Security Audit Workflow Failure
+
+              The daily security audit workflow has failed and requires attention.
+
+              **Workflow Run**: ${{ github.run_id }}
+              **Run Number**: ${{ github.run_number }}
+
+              Please review the workflow logs and fix any issues preventing the security audit from running.
+
+              ---
+
+              *This issue was automatically created due to workflow failure.*`,
+              labels: ['bug', 'github-actions', 'needs triage'],
+            });
+
+      - name: Upload Audit Results
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: security-audit-results-${{ github.run_number }}
+          path: |
+            audit-results.json
+            outdated.json
+            audit-summary.md
+            dependabot-alerts.json
+          retention-days: 30

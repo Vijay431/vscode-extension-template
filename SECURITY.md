@@ -13,7 +13,7 @@ We provide security updates for the following versions of {{DISPLAY_NAME}}:
 We take the security of {{DISPLAY_NAME}} VS Code Extension seriously. If you believe you have found a security vulnerability, please follow these steps:
 
 1. **DO NOT** disclose the vulnerability publicly.
-2. Send a detailed description of the vulnerability to {{AUTHOR_EMAIL}}.
+2. Use [GitHub private vulnerability reporting]({{REPO_URL}}/security/advisories/new). The [report form](.github/VULNERABILITY_REPORT.yml) lists the fields to fill in. If you cannot use GitHub, email {{AUTHOR_EMAIL}}.
 3. You should receive a response within 48 hours.
 4. Please provide sufficient information to reproduce the vulnerability.
 

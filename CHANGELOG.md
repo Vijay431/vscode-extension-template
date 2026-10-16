@@ -24,8 +24,16 @@ HOW TO MAINTAIN THIS FILE
 - `install.sh` now runs on macOS's bash 3.2, and `TEMPLATE_REPO_URL` / `TEMPLATE_BRANCH` can be overridden via environment.
 - Unit tests for the DI container, logger, configuration and accessibility services, command handlers/registry, cache, and validators.
 
+- Integration tests run through `@vscode/test-cli` (`.vscode-test.mjs`).
+- `release-gate.sh`, and a `Release` workflow that starts from a `v*` tag push, can be re-run by allowlisted actors (`RELEASE_WHITELIST_ACTORS`), skips versions already published, and attests the `.vsix` build provenance.
+- `security-daily`, `codeql`, and `scorecard` workflows, a private vulnerability report form, `SUPPORT.md`, `codecov.yml`, `AGENTS.md`, `ARCHITECTURE.md`, and `.coderabbit.yaml`.
+- Issue forms for bug reports and feature requests, plus configuration, cross-platform, performance, and refactoring templates.
+- `docs/sync.md`: the baseline checklist for sibling extensions.
+
 ### Changed
 
+- **BREAKING:** `test:integration` no longer uses `out-test/test/runTests.js`; it runs `vscode-test`.
+- Every workflow action is pinned to a commit SHA, and `build` runs on Node.js 24.x and 26.x.
 - `install.sh` checks for Node.js 22.12+ (24 recommended) before bootstrapping, and its leftover-token check now also covers `.txt`, `.mjs` and `.cjs` files.
 - Services are now resolved only through the DI container; `ExtensionManager` no longer builds its own `Logger`/`ConfigurationService`.
 - A command that returns `{ success: false }` now shows its message to the user; handlers can expose an optional `dispose()`.
@@ -35,6 +43,7 @@ HOW TO MAINTAIN THIS FILE
 
 ### Removed
 
+- `pr-commit-size` and `stale` workflows, `check-commit-size.sh`, `commit-size-excludes.txt`, `convert-encoding.sh`, `runTests.ts`, `test/suite/index.ts`, and the `glob` and `mocha` dev dependencies.
 - ESLint and Prettier (and their plugins/configs), replaced by Biome. See `docs/biome-migration.md` for the rules that were not carried over.
 - `getInstance()` singletons on `Logger`, `ConfigurationService` and `AccessibilityService`, and deprecated `AccessibilityService` helpers (`shouldAnnounceInternal`, `showKeyboardNavigationInternal`, `isScreenReaderMode`).
 

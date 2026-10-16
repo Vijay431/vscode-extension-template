@@ -91,7 +91,7 @@ The project has two test layers:
 | ----------- | ----------------------------- | ------------------------------- | ------------------------------------------------------------- |
 | Unit        | `pnpm run test:unit`          | Vitest                          | Infrastructure utilities and services with mocked VS Code API |
 | Unit (cov)  | `pnpm run test:unit:coverage` | Vitest + v8                     | Same as above; outputs `coverage/lcov.info` for Codecov       |
-| Integration | `pnpm run test:integration`   | Mocha + `@vscode/test-electron` | Feature-level tests, end-to-end in a real VS Code instance    |
+| Integration | `pnpm run test:integration`   | Mocha + `@vscode/test-cli` | Feature-level tests, end-to-end in a real VS Code instance    |
 
 **Unit tests** cover: `Cache`, `pathValidator`, `ConfigValidator`, `accessibilityHelper`, and services under `src/services/`.
 
@@ -187,7 +187,7 @@ git add src/commands/openInTerminal.ts
 git commit -m "feat(terminal): add openInTerminal command handler"
 ```
 
-> **Note:** `--no-verify` bypasses local hooks but the CI `commit-size` job will still block oversized PRs. Add the `size/override` label to your PR to bypass the CI check for large sweeping refactors (grandfathered migrations, generated-file churn, etc.).
+> **Note:** `--no-verify` bypasses local hooks, but CI still runs Biome, markdownlint, and commitlint.
 
 #### Grandfathered History
 
@@ -211,7 +211,7 @@ Workflows and most other `.github/` files ship as `*.init` placeholders in the t
 
 - `lint` — runs `pnpm run lint`
 - `test-unit` — runs `pnpm run test:unit` (Vitest, ubuntu only, after `lint`)
-- `test-integration` — runs `pnpm run test:integration` (Mocha + VS Code, ubuntu/windows/macOS, after `lint`, parallel with `test-unit`)
+- `test-integration` — runs `pnpm run test:integration` (Mocha + VS Code via `@vscode/test-cli` under `xvfb-run`, ubuntu, after `lint`, parallel with `test-unit`)
 - `build` — builds on Ubuntu, Windows, macOS × Node 24 × VS Code stable/insiders (after both test jobs pass)
 - `audit` — runs `pnpm audit --audit-level=moderate`
 - `dependency-review` — reviews dependency changes on PRs

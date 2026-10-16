@@ -11,6 +11,12 @@ Store screenshots, GIFs, and banner images referenced from:
 
 Recommended naming: `docs/images/<feature-name>.<gif|png>`.
 
+## Maintainer docs
+
+- [`bootstrap.md`](bootstrap.md) — what `install.sh` does and how releases run.
+- [`sync.md`](sync.md) — keeping extensions aligned with the template.
+- [`biome-migration.md`](biome-migration.md) — rules not carried over from ESLint.
+
 ## Optional: GitHub Pages (legacy)
 
 `docs/` can serve as a GitHub Pages source with no workflow required.
