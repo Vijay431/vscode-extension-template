@@ -220,11 +220,17 @@ Workflows and most other `.github/` files ship as `*.init` placeholders in the t
 
 - `setup` — extracts version, detects pre-release (`-rc`, `-next`, `-beta`, `-alpha`)
 - `release-build` — checks out `main` branch and builds the production VSIX
-- `verifier` — validates VSIX contents (no source files, no node_modules, correct bundle)
+- `verifier` — validates VSIX contents (no source files, no node_modules, only allowlisted files, no source map references, correct bundle)
 - `publish-vscode` — publishes to VS Code Marketplace (stable or `--pre-release`)
 - `publish-openvsx` — publishes to Open VSX Registry (stable or `--pre-release`)
 - `deploy-pages` — deploys docs to GitHub Pages (stable releases only, runs after both publishes succeed)
 - `create-release` — creates a GitHub Release with the VSIX attached
+
+### Packaging Allowlist
+
+`.vscodeignore` is an allowlist: it ignores everything (`**`) and re-includes only what users need at runtime. A new file is excluded from the VSIX unless you add it to `.vscodeignore` **and** to the `ALLOWED` pattern in the `verifier` job of `.github/workflows/release.yml`. Run `pnpm dlx vsce ls` to preview the package contents.
+
+esbuild runs with `legalComments: 'none'`, which strips bundled license text. If you ever bundle a runtime dependency, ship its license notices (switch to `legalComments: 'eof'` or `'external'`, or add a notice file to the allowlist).
 
 ### Code Architecture
 

@@ -18,6 +18,10 @@ HOW TO MAINTAIN THIS FILE
 
 ## [Unreleased]
 
+### Changed
+
+- `.vscodeignore` is now an allowlist, and the release verifier fails on any VSIX file outside it or on shipped JS that references a source map.
+
 ### Added
 
 - `Template Check` workflow that typechecks, lints, tests and builds the template repository itself; `install.sh` removes it from generated projects.
