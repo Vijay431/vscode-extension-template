@@ -1,68 +1,10 @@
-# ============================================
-# Source & Build Directories
-# ============================================
-src/
-test/
-scripts/
-out-test/
-dist/src/
-dist/test/
+# Allowlist: ignore everything, then re-include only what users need at runtime.
+# New shipped files must also be added to the VSIX verifier in .github/workflows/release.yml.
+**
 
-# ============================================
-# Dependencies & Package Management
-# ============================================
-node_modules/
-pnpm-lock.yaml
-
-# ============================================
-# Development & CI/CD Configuration
-# ============================================
-.github/
-.husky/
-.gitignore
-.editorconfig
-.nvmrc
-biome.json
-tsconfig*.json
-esbuild*
-vitest.config.ts
-install.sh
-
-# ============================================
-# VS Code Configuration & Workspaces
-# ============================================
-.vscode/
-.vscode-test/
-.vscodeignore
-
-# ============================================
-# Build Artifacts & Logs
-# ============================================
-*.vsix
-debug.log
-dist/meta.json
-coverage/
-tsconfig.test.json
-.mcp.json
-.vscode-test.mjs
-.lintstagedrc
-.cursorignore
-.code-review-graph
-.worktrees/
-.auto-claude/
-.automaker/
-.claude/
-.sisyphus
-
-# ============================================
-# Documentation & Content
-# ============================================
-docs/
-
-# ============================================
-# Project & Documentation Files
-# ============================================
-LLM.txt
-CONTRIBUTING.md
-SECURITY.md
-CODE_OF_CONDUCT.md
+!package.json
+!README.md
+!CHANGELOG.md
+!LICENSE
+!logo.png
+!dist/extension.js
