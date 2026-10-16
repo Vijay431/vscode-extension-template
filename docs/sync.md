@@ -50,7 +50,7 @@ Record every Biome rule override and every deferred dependency bump below.
 
 #### Workflows
 
-- ACM and KPN declare `packageManager` in `package.json`, so their workflows omit `version: 12` on `pnpm/action-setup`. The action reads the pinned version from `package.json`.
+- All repos pin `packageManager` to `pnpm@12.4.2` and omit `version` on `pnpm/action-setup`; the action reads the pinned version from `package.json`.
 
 #### Tests
 
