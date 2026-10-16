@@ -22,7 +22,7 @@ set -euo pipefail
 #
 # Prerequisites
 #   Required   git, network access, Node.js matching the template's engines.node
-#   Automatic  pnpm (activated via corepack at the version devEngines pins)
+#   Automatic  pnpm (activated via corepack at the version packageManager pins)
 #
 # Nothing else is asked or required. On failure the partial project directory
 # is removed.
@@ -176,8 +176,7 @@ fi
 
 STEP="setting up pnpm"
 if ! command -v pnpm &>/dev/null; then
-  PNPM_MAJOR=$(pkg_field "require('./package.json').devEngines.packageManager.version" | sed -E 's/[^0-9]*([0-9]+).*/\1/')
-  PNPM_SPEC="pnpm${PNPM_MAJOR:+@$PNPM_MAJOR}"
+  PNPM_SPEC=$(pkg_field "require('./package.json').packageManager")
   if command -v corepack &>/dev/null; then
     corepack enable pnpm >/dev/null 2>&1 || true
     corepack prepare "$PNPM_SPEC" --activate >/dev/null 2>&1 || true

@@ -21,7 +21,7 @@
 | git     | Yes      | Also used for the initial commit                                      |
 | Node.js | Yes      | Must satisfy the template's `engines.node` (checked after cloning)    |
 | Network | Yes      | Clone and `pnpm install`                                              |
-| pnpm    | No       | Activated automatically through corepack at the `devEngines` version  |
+| pnpm    | No       | Activated automatically through corepack at the `packageManager` version |
 
 ## What you get
 
