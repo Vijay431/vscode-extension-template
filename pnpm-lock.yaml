@@ -202,8 +202,8 @@ importers:
         specifier: ^24.19.2
         version: 24.19.2
       '@types/vscode':
-        specifier: ^1.111.0
-        version: 1.140.0
+        specifier: ^1.144.0
+        version: 1.144.0
       '@vitest/coverage-v8':
         specifier: 5.0.4
         version: 5.0.4(vitest@5.0.4)
@@ -1221,8 +1221,8 @@ packages:
   '@types/unist@2.0.11':
     resolution: {integrity: sha512-CmBKiL6NNo/OqgmMn95Fk9Whlp2mtvIv+KNpQKN2F4SjvrEesubTRWGYSg+BnWZOnlCaSTU1sMpsBOzgbYhnsA==}
 
-  '@types/vscode@1.140.0':
-    resolution: {integrity: sha512-KAB5RBZIgnUhpp4mKsVJPPHLOQKu6WtGy2xpfWjaajEXO4xIIC+UESAXLiQ9ewx6QD1uBmvC/S8BJzkbvv4bRA==}
+  '@types/vscode@1.144.0':
+    resolution: {integrity: sha512-IDd4eQzu6MjGucfaQF0V/TY5vHX9o1albkKyZD6K/iVXSCcL5NSj4KW1wWfx1QDadPKWyxMaE/+M1wKLCJlXpA==}
 
   '@typespec/ts-http-runtime@0.3.5':
     resolution: {integrity: sha512-yURCknZhvywvQItHMMmFSo+fq5arCUIyz/CVk7jD89MSai7dkaX8ufjCWp3NttLojoTVbcE72ri+be/TnEbMHw==}
@@ -4295,7 +4295,7 @@ snapshots:
 
   '@types/unist@2.0.11': {}
 
-  '@types/vscode@1.140.0': {}
+  '@types/vscode@1.144.0': {}
 
   '@typespec/ts-http-runtime@0.3.5(supports-color@8.1.1)':
     dependencies:
