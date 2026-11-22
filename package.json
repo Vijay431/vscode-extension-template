@@ -164,7 +164,7 @@
     "concurrently": "^10.0.6",
     "esbuild": "^0.28.2",
     "husky": "^9.1.7",
-    "lint-staged": "^17.0.6",
+    "lint-staged": "^17.6.1",
     "markdownlint-cli2": "0.23.3",
     "ovsx": "^1.2.0",
     "rimraf": "^6.0.1",
