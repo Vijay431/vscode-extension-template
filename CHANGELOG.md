@@ -61,4 +61,8 @@ HOW TO MAINTAIN THIS FILE
 - `Logger` dropped falsy data (`0`, `''`, `false`); `announceProgress` guards `total <= 0`.
 - Logger no longer disposed twice; activation failure shows one error toast instead of two.
 
+### Security
+
+- `pnpm audit` is clean again: dependency overrides now pull patched `undici`, `markdown-it`, `fast-uri`, `qs`, `serialize-javascript`, `@azure/msal-node` (via `@azure/identity`), `glob`, and `minimatch` into the dev-only tooling tree.
+
 [Unreleased]: {{REPO_URL}}/commits/main
