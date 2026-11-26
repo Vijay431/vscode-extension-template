@@ -16,6 +16,10 @@ updates:
         update-types: ['version-update:semver-major']
       - dependency-name: '@vscode/vsce'
         update-types: ['version-update:semver-major']
+      # @types/vscode must not exceed engines.vscode, or vsce refuses to package.
+      # Bump it together with engines.vscode by hand.
+      - dependency-name: '@types/vscode'
+        update-types: ['version-update:semver-major', 'version-update:semver-minor']
     labels:
       - 'dependabot'
     commit-message:
